@@ -170,12 +170,10 @@
         }
 
         .business-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
             margin: 15px 0;
             font-size: 14px;
             color: #a0a0c0;
+            line-height: 1.5;
         }
 
         .action-buttons {
@@ -282,10 +280,10 @@
 
     <div class="container">
         <div class="search-section">
-            <h2 class="search-title">🔍 <span>Business Search</span> - Find Real Companies Online</h2>
+            <h2 class="search-title">🔍 <span>Business Search</span> - Find Companies in Ghana</h2>
             
             <div class="search-input-group">
-                <input type="text" id="searchQuery" placeholder="e.g., schools in Accra, hotels in Kumasi, restaurants in Tema">
+                <input type="text" id="searchQuery" placeholder="e.g., schools, hotels, restaurants, hospitals">
                 <select id="searchLocation">
                     <option value="">All Ghana</option>
                     <option value="Accra">Accra</option>
@@ -295,18 +293,18 @@
                     <option value="Cape Coast">Cape Coast</option>
                     <option value="Tamale">Tamale</option>
                 </select>
-                <button class="search-btn" onclick="searchDuckDuckGo()">🔍 Search Web</button>
+                <button class="search-btn" onclick="searchBusinesses()">🔍 Search</button>
             </div>
             
             <div class="suggestions">
-                <span class="suggestion-chip" onclick="quickSearch('schools in Accra')">🏫 Schools in Accra</span>
-                <span class="suggestion-chip" onclick="quickSearch('hotels in Kumasi')">🏨 Hotels in Kumasi</span>
-                <span class="suggestion-chip" onclick="quickSearch('hospitals in Accra')">🏥 Hospitals in Accra</span>
-                <span class="suggestion-chip" onclick="quickSearch('restaurants in Accra')">🍽️ Restaurants in Accra</span>
-                <span class="suggestion-chip" onclick="quickSearch('IT companies in Ghana')">💻 IT Companies</span>
-                <span class="suggestion-chip" onclick="quickSearch('pharmacies in Accra')">💊 Pharmacies</span>
+                <span class="suggestion-chip" onclick="quickSearch('schools')">🏫 Schools</span>
+                <span class="suggestion-chip" onclick="quickSearch('hotels')">🏨 Hotels</span>
+                <span class="suggestion-chip" onclick="quickSearch('hospitals')">🏥 Hospitals</span>
+                <span class="suggestion-chip" onclick="quickSearch('restaurants')">🍽️ Restaurants</span>
+                <span class="suggestion-chip" onclick="quickSearch('banks')">🏦 Banks</span>
+                <span class="suggestion-chip" onclick="quickSearch('IT companies')">💻 IT Companies</span>
             </div>
-            <p class="note">💡 This searches real business websites and directories using DuckDuckGo. Click "Search Google" on any result to find more details.</p>
+            <p class="note">💡 Searches real business information. Click "Search Google" to find contact details.</p>
         </div>
 
         <div class="results-section">
@@ -317,8 +315,7 @@
             <div id="searchResults">
                 <div class="loading">
                     <div class="spinner"></div>
-                    <p>Enter a search term above or click a suggestion...</p>
-                    <p class="note" style="margin-top: 10px;">Try: "schools in Accra", "hotels in Kumasi", "restaurants"</p>
+                    <p>Enter a search term or click a suggestion...</p>
                 </div>
             </div>
         </div>
@@ -334,7 +331,9 @@
             window.location.href = 'index.html';
         }
 
-        async function searchDuckDuckGo() {
+        const API_URL = '';
+
+        async function searchBusinesses() {
             const query = document.getElementById('searchQuery').value.trim();
             const location = document.getElementById('searchLocation').value;
             
@@ -343,109 +342,62 @@
                 return;
             }
             
-            let searchQuery = query;
-            if (location && !query.toLowerCase().includes(location.toLowerCase())) {
-                searchQuery += ` ${location}`;
-            }
-            searchQuery += ` Ghana business`;
-            
             document.getElementById('searchResults').innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
-                    <p>Searching for "${escapeHtml(searchQuery)}"...</p>
+                    <p>Searching for ${query} in ${location || 'Ghana'}...</p>
                 </div>
             `;
             
             try {
-                // Use DuckDuckGo Instant Answer API (free, no key)
-                const apiUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(searchQuery)}&format=json&no_html=1&skip_disambig=1`;
-                const response = await fetch(apiUrl);
+                const response = await fetch(`${API_URL}/api/search/business?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
                 const data = await response.json();
                 
-                let results = [];
-                
-                // Extract results from DuckDuckGo
-                if (data.RelatedTopics && data.RelatedTopics.length > 0) {
-                    results = data.RelatedTopics
-                        .filter(t => t.Text && t.Text.length > 0 && t.Text.length < 500)
-                        .slice(0, 15)
-                        .map((t, index) => {
-                            let text = t.Text;
-                            let name = text.split(' - ')[0] || text.split(':')[0] || text.substring(0, 80);
-                            let description = text.length > 200 ? text.substring(0, 200) + '...' : text;
-                            return {
-                                id: index,
-                                name: name,
-                                description: description,
-                                location: location || 'Ghana',
-                                category: query,
-                                url: t.FirstURL || '',
-                                source: 'duckduckgo'
-                            };
-                        });
-                }
-                
-                if (results.length === 0 && data.AbstractText) {
-                    results = [{
-                        id: 1,
-                        name: searchQuery.substring(0, 60),
-                        description: data.AbstractText,
-                        location: location || 'Ghana',
-                        category: query,
-                        url: data.AbstractURL || '',
-                        source: 'duckduckgo'
-                    }];
-                }
-                
-                if (results.length === 0) {
+                if (data.results && data.results.length > 0) {
+                    currentResults = data.results;
+                    displayResults(data.results);
+                    document.getElementById('resultsCount').innerHTML = `${data.results.length} results found`;
+                    showToast(`Found ${data.results.length} results!`, 'success');
+                } else {
                     document.getElementById('searchResults').innerHTML = `
                         <div class="loading">
-                            <p>🔍 No results found for "${escapeHtml(searchQuery)}"</p>
-                            <p class="note">Try different keywords or click "Search Google" below to find businesses manually.</p>
+                            <p>🔍 No results found for "${escapeHtml(query)}"</p>
+                            <p class="note">Try a different search term or click "Search Google" below.</p>
                         </div>
                     `;
                     document.getElementById('resultsCount').innerHTML = '0 results found';
-                    showToast('No results. Try "schools in Accra" or click a suggestion', 'info');
-                    return;
+                    showToast('No results found. Try different keywords.', 'info');
                 }
-                
-                currentResults = results;
-                displayWebResults(results);
-                document.getElementById('resultsCount').innerHTML = `${results.length} results found`;
-                showToast(`Found ${results.length} results! Click "Search Google" for contact details.`, 'success');
-                
             } catch (error) {
                 console.error('Search error:', error);
                 document.getElementById('searchResults').innerHTML = `
                     <div class="loading">
                         <p>❌ Search error. Please try again.</p>
-                        <p class="note">You can still use the "Search Google" button to find businesses manually.</p>
                     </div>
                 `;
-                showToast('Search error. Try clicking a suggestion or using Google search button.', 'error');
+                showToast('Search error. Please try again.', 'error');
             }
         }
 
-        function displayWebResults(results) {
+        function displayResults(results) {
             const container = document.getElementById('searchResults');
             
             container.innerHTML = results.map(result => `
                 <div class="business-card">
                     <div class="business-name">🔍 ${escapeHtml(result.name)}</div>
                     <div class="business-details">
-                        <div>📍 <strong>Search:</strong> ${escapeHtml(result.category)} in ${escapeHtml(result.location)}</div>
-                        ${result.description ? `<div>📝 <strong>Info:</strong> ${escapeHtml(result.description.substring(0, 150))}${result.description.length > 150 ? '...' : ''}</div>` : ''}
+                        ${result.description ? `<div>📝 ${escapeHtml(result.description)}</div>` : ''}
                     </div>
                     <div class="action-buttons">
-                        <button class="google-search-btn" onclick='searchGoogleForResult("${escapeHtml(result.name)}", "${escapeHtml(result.location)}")'>🌐 Search Google for Details</button>
+                        <button class="google-search-btn" onclick='searchGoogle("${escapeHtml(result.name)}")'>🌐 Search Google for Details</button>
                         <button class="import-btn" onclick='manualImport("${escapeHtml(result.name)}", "${escapeHtml(result.location)}", "${escapeHtml(result.category)}")'>📥 Import to CRM</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function searchGoogleForResult(businessName, location) {
-            let searchQuery = `${businessName} ${location} Ghana contact email phone`;
+        function searchGoogle(businessName) {
+            let searchQuery = `${businessName} Ghana contact email phone website`;
             window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
             showToast(`Searching Google for "${businessName}"...`, 'info');
         }
@@ -458,7 +410,6 @@
                 return;
             }
             
-            // Prompt user for contact details
             const phone = prompt(`Enter phone number for ${name} (optional):`, '');
             const email = prompt(`Enter email for ${name} (optional):`, '');
             
@@ -468,23 +419,22 @@
                 company: name,
                 email: email || '',
                 phone: phone || '',
-                address: location,
+                address: location || 'Ghana',
                 category: category,
                 status: 'new',
-                notes: `Imported from Web Search. Search term: ${category}`,
+                notes: `Imported from Business Search. Search term: ${category}`,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
             
             contacts.push(newContact);
             localStorage.setItem('sss_contacts', JSON.stringify(contacts));
-            showToast(`${name} imported to CRM! You can edit contact details later.`, 'success');
+            showToast(`${name} imported to CRM!`, 'success');
         }
 
         function quickSearch(term) {
             document.getElementById('searchQuery').value = term;
-            document.getElementById('searchLocation').value = '';
-            searchDuckDuckGo();
+            searchBusinesses();
         }
 
         function showToast(message, type = 'success') {
@@ -514,7 +464,7 @@
 
         document.getElementById('searchQuery').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                searchDuckDuckGo();
+                searchBusinesses();
             }
         });
     </script>
