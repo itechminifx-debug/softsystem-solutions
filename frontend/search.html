@@ -332,141 +332,66 @@
         }
 
         const API_URL = '';
-
-        async function searchBusinesses() {
-            const query = document.getElementById('searchQuery').value.trim();
-            const location = document.getElementById('searchLocation').value;
-            
-            if (!query) {
-                showToast('Please enter a search term', 'error');
-                return;
-            }
-            
+async function searchBusinesses() {
+    const query = document.getElementById('searchQuery').value.trim();
+    const location = document.getElementById('searchLocation').value;
+    
+    if (!query) {
+        showToast('Please enter a search term', 'error');
+        return;
+    }
+    
+    document.getElementById('searchResults').innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Searching for ${query} in ${location || 'Ghana'}...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`${API_URL}/api/search/business?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            currentResults = data.results;
+            displayResults(data.results);
+            document.getElementById('resultsCount').innerHTML = `${data.results.length} businesses found`;
+            showToast(`Found ${data.results.length} businesses!`, 'success');
+        } else {
+            // Show helpful message with examples
             document.getElementById('searchResults').innerHTML = `
                 <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Searching for ${query} in ${location || 'Ghana'}...</p>
+                    <p>🔍 No specific results found for "${escapeHtml(query)}"</p>
+                    <p class="note" style="margin-top: 15px;">💡 Try these search terms:</p>
+                    <div class="suggestions" style="justify-content: center; margin-top: 10px;">
+                        <span class="suggestion-chip" onclick="quickSearch('schools')">🏫 Schools</span>
+                        <span class="suggestion-chip" onclick="quickSearch('hotels')">🏨 Hotels</span>
+                        <span class="suggestion-chip" onclick="quickSearch('hospitals')">🏥 Hospitals</span>
+                        <span class="suggestion-chip" onclick="quickSearch('restaurants')">🍽️ Restaurants</span>
+                        <span class="suggestion-chip" onclick="quickSearch('banks')">🏦 Banks</span>
+                        <span class="suggestion-chip" onclick="quickSearch('IT companies')">💻 IT Companies</span>
+                    </div>
+                    <p class="note" style="margin-top: 15px;">Or click "Search Google" below to find businesses manually.</p>
                 </div>
             `;
-            
-            try {
-                const response = await fetch(`${API_URL}/api/search/business?q=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`);
-                const data = await response.json();
-                
-                if (data.results && data.results.length > 0) {
-                    currentResults = data.results;
-                    displayResults(data.results);
-                    document.getElementById('resultsCount').innerHTML = `${data.results.length} results found`;
-                    showToast(`Found ${data.results.length} results!`, 'success');
-                } else {
-                    document.getElementById('searchResults').innerHTML = `
-                        <div class="loading">
-                            <p>🔍 No results found for "${escapeHtml(query)}"</p>
-                            <p class="note">Try a different search term or click "Search Google" below.</p>
-                        </div>
-                    `;
-                    document.getElementById('resultsCount').innerHTML = '0 results found';
-                    showToast('No results found. Try different keywords.', 'info');
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-                document.getElementById('searchResults').innerHTML = `
-                    <div class="loading">
-                        <p>❌ Search error. Please try again.</p>
-                    </div>
-                `;
-                showToast('Search error. Please try again.', 'error');
-            }
+            document.getElementById('resultsCount').innerHTML = '0 businesses found';
+            showToast('No results. Try "schools", "hotels", or "hospitals"', 'info');
         }
-
-        function displayResults(results) {
-            const container = document.getElementById('searchResults');
-            
-            container.innerHTML = results.map(result => `
-                <div class="business-card">
-                    <div class="business-name">🔍 ${escapeHtml(result.name)}</div>
-                    <div class="business-details">
-                        ${result.description ? `<div>📝 ${escapeHtml(result.description)}</div>` : ''}
-                    </div>
-                    <div class="action-buttons">
-                        <button class="google-search-btn" onclick='searchGoogle("${escapeHtml(result.name)}")'>🌐 Search Google for Details</button>
-                        <button class="import-btn" onclick='manualImport("${escapeHtml(result.name)}", "${escapeHtml(result.location)}", "${escapeHtml(result.category)}")'>📥 Import to CRM</button>
-                    </div>
+    } catch (error) {
+        console.error('Search error:', error);
+        document.getElementById('searchResults').innerHTML = `
+            <div class="loading">
+                <p>❌ Search error. Please try again.</p>
+                <div class="suggestions" style="justify-content: center; margin-top: 15px;">
+                    <span class="suggestion-chip" onclick="quickSearch('schools')">🏫 Schools</span>
+                    <span class="suggestion-chip" onclick="quickSearch('hotels')">🏨 Hotels</span>
+                    <span class="suggestion-chip" onclick="quickSearch('hospitals')">🏥 Hospitals</span>
                 </div>
-            `).join('');
-        }
-
-        function searchGoogle(businessName) {
-            let searchQuery = `${businessName} Ghana contact email phone website`;
-            window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
-            showToast(`Searching Google for "${businessName}"...`, 'info');
-        }
-
-        function manualImport(name, location, category) {
-            let contacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
-            
-            if (contacts.some(c => c.name === name)) {
-                showToast(`${name} is already in your CRM!`, 'error');
-                return;
-            }
-            
-            const phone = prompt(`Enter phone number for ${name} (optional):`, '');
-            const email = prompt(`Enter email for ${name} (optional):`, '');
-            
-            const newContact = {
-                id: contacts.length > 0 ? Math.max(...contacts.map(c => c.id)) + 1 : 1,
-                name: name,
-                company: name,
-                email: email || '',
-                phone: phone || '',
-                address: location || 'Ghana',
-                category: category,
-                status: 'new',
-                notes: `Imported from Business Search. Search term: ${category}`,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            contacts.push(newContact);
-            localStorage.setItem('sss_contacts', JSON.stringify(contacts));
-            showToast(`${name} imported to CRM!`, 'success');
-        }
-
-        function quickSearch(term) {
-            document.getElementById('searchQuery').value = term;
-            searchBusinesses();
-        }
-
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.backgroundColor = type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#10b981';
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = 'index.html';
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchBusinesses();
-            }
-        });
+            </div>
+        `;
+        showToast('Using sample data. Click a suggestion above.', 'info');
+    }
+}
     </script>
 </body>
 </html>
