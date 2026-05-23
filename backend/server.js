@@ -7,7 +7,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PPORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -283,6 +283,59 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
     }
 });
 
+// ==================== BUSINESS SEARCH PROXY (FIXES CORS) ====================
+app.get('/api/search/business', async (req, res) => {
+    const { q, location } = req.query;
+    
+    if (!q) {
+        return res.status(400).json({ error: 'Search query required' });
+    }
+    
+    let searchQuery = q;
+    if (location && !q.toLowerCase().includes(location.toLowerCase())) {
+        searchQuery += ` ${location}`;
+    }
+    searchQuery += ` Ghana business`;
+    
+    try {
+        // Use DuckDuckGo API through server (no CORS issues)
+        const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(searchQuery)}&format=json&no_html=1&skip_disambig=1`);
+        const data = await response.json();
+        
+        let results = [];
+        
+        if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+            results = data.RelatedTopics
+                .filter(t => t.Text && t.Text.length > 0 && t.Text.length < 500)
+                .slice(0, 20)
+                .map((t, index) => ({
+                    id: index,
+                    name: t.Text.split(' - ')[0] || t.Text.split(':')[0] || t.Text.substring(0, 80),
+                    description: t.Text.length > 200 ? t.Text.substring(0, 200) + '...' : t.Text,
+                    location: location || 'Ghana',
+                    category: q,
+                    url: t.FirstURL || ''
+                }));
+        }
+        
+        if (results.length === 0 && data.AbstractText) {
+            results = [{
+                id: 1,
+                name: searchQuery.substring(0, 60),
+                description: data.AbstractText,
+                location: location || 'Ghana',
+                category: q,
+                url: data.AbstractURL || ''
+            }];
+        }
+        
+        res.json({ success: true, results: results });
+    } catch (error) {
+        console.error('Search proxy error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== HEALTH CHECK ====================
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running!' });
@@ -307,6 +360,7 @@ app.listen(PORT, () => {
 ║     Server running on http://localhost:${PORT}             ║
 ║                                                           ║
 ║     ✅ PostgreSQL Connected!                             ║
+║     ✅ Business Search Proxy Enabled!                    ║
 ║                                                           ║
 ║     🔐 Login: admin / admin123                           ║
 ║                                                           ║
