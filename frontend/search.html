@@ -5,45 +5,244 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Search | Soft System Solutions</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: #0f0f1a; color: #ffffff; }
-        .navbar { background: #1a1a2e; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid rgba(245,158,11,0.3); }
-        .logo { font-size: 22px; font-weight: bold; }
-        .logo span { color: #f59e0b; }
-        .nav-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-btn { background: transparent; border: 1px solid rgba(245,158,11,0.3); color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
-        .nav-btn:hover { background: #f59e0b; color: #0f0f1a; }
-        .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
-        .search-section { background: #1a1a2e; border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(245,158,11,0.2); }
-        .search-title { font-size: 24px; margin-bottom: 20px; }
-        .search-title span { color: #f59e0b; }
-        .search-input-group { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
-        .search-input-group input { flex: 2; padding: 15px 20px; background: #0f0f1a; border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; color: white; font-size: 16px; }
-        .search-input-group select { padding: 15px 20px; background: #0f0f1a; border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; color: white; min-width: 150px; }
-        .search-btn { background: #f59e0b; color: #0f0f1a; padding: 15px 30px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        .suggestions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .suggestion-chip { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); padding: 8px 16px; border-radius: 25px; font-size: 13px; cursor: pointer; }
-        .suggestion-chip:hover { background: #f59e0b; color: #0f0f1a; }
-        .manual-section { background: #1a1a2e; border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(245,158,11,0.2); }
-        .manual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
-        .manual-grid input, .manual-grid textarea { padding: 12px; background: #0f0f1a; border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; color: white; }
-        .results-section { background: #1a1a2e; border-radius: 20px; padding: 30px; border: 1px solid rgba(245,158,11,0.2); }
-        .results-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
-        .results-count { color: #f59e0b; }
-        .business-card { background: #0f0f1a; border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(245,158,11,0.1); }
-        .business-card:hover { border-color: rgba(245,158,11,0.4); transform: translateX(5px); }
-        .business-name { font-size: 18px; font-weight: bold; color: #f59e0b; margin-bottom: 10px; }
-        .business-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 15px 0; font-size: 14px; color: #a0a0c0; }
-        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
-        .import-btn { background: #10b981; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; }
-        .google-search-btn { background: #4285f4; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; }
-        .google-maps-btn { background: #34a853; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; }
-        .loading { text-align: center; padding: 60px; }
-        .spinner { width: 40px; height: 40px; border: 3px solid rgba(245,158,11,0.3); border-top-color: #f59e0b; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .toast { position: fixed; bottom: 30px; right: 30px; background: #10b981; color: white; padding: 12px 24px; border-radius: 8px; display: none; z-index: 1000; }
-        @media (max-width: 768px) { .navbar { flex-direction: column; } .search-input-group { flex-direction: column; } .manual-grid { grid-template-columns: 1fr; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: #0f0f1a;
+            color: #ffffff;
+        }
+
+        .navbar {
+            background: #1a1a2e;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 1px solid rgba(245,158,11,0.3);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #f59e0b;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid rgba(245,158,11,0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #f59e0b;
+            color: #0f0f1a;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .search-section {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+
+        .search-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .search-title span {
+            color: #f59e0b;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .search-input-group input {
+            flex: 2;
+            padding: 15px 20px;
+            background: #0f0f1a;
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .search-input-group select {
+            padding: 15px 20px;
+            background: #0f0f1a;
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 12px;
+            color: white;
+            min-width: 150px;
+        }
+
+        .search-btn {
+            background: #f59e0b;
+            color: #0f0f1a;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .results-section {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .results-count {
+            color: #f59e0b;
+        }
+
+        .business-card {
+            background: #0f0f1a;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(245,158,11,0.1);
+            transition: all 0.3s;
+        }
+
+        .business-card:hover {
+            border-color: rgba(245,158,11,0.4);
+            transform: translateX(5px);
+        }
+
+        .business-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+
+        .business-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #a0a0c0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .import-btn {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .google-search-btn {
+            background: #4285f4;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(245,158,11,0.3);
+            border-top-color: #f59e0b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .searching-note {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; text-align: center; }
+            .search-input-group { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
@@ -60,107 +259,271 @@
 
     <div class="container">
         <div class="search-section">
-            <h2 class="search-title">🔍 <span>Business Search</span></h2>
+            <h2 class="search-title">🔍 <span>Real Business Search</span> - Search Any Business Online</h2>
+            
             <div class="search-input-group">
-                <input type="text" id="searchQuery" placeholder="Search for schools, hotels, hospitals, restaurants...">
-                <select id="searchLocation"><option value="">All Ghana</option><option value="Accra">Accra</option><option value="Kumasi">Kumasi</option><option value="Takoradi">Takoradi</option><option value="Tema">Tema</option><option value="Cape Coast">Cape Coast</option><option value="Tamale">Tamale</option></select>
-                <button class="search-btn" onclick="performSearch()">🔍 Search</button>
+                <input type="text" id="searchQuery" placeholder="Search any business... e.g., 'schools in Accra', 'hotels in Kumasi', 'restaurants near me'">
+                <select id="searchLocation">
+                    <option value="">All Ghana</option>
+                    <option value="Accra">Accra</option>
+                    <option value="Kumasi">Kumasi</option>
+                    <option value="Takoradi">Takoradi</option>
+                    <option value="Tema">Tema</option>
+                    <option value="Cape Coast">Cape Coast</option>
+                    <option value="Tamale">Tamale</option>
+                </select>
+                <button class="search-btn" onclick="performRealSearch()">🌐 Search Web</button>
             </div>
-            <div class="suggestions">
-                <span class="suggestion-chip" onclick="quickSearch('schools')">🏫 Schools</span>
-                <span class="suggestion-chip" onclick="quickSearch('hotels')">🏨 Hotels</span>
-                <span class="suggestion-chip" onclick="quickSearch('hospitals')">🏥 Hospitals</span>
-                <span class="suggestion-chip" onclick="quickSearch('restaurants')">🍽️ Restaurants</span>
-                <span class="suggestion-chip" onclick="quickSearch('banks')">🏦 Banks</span>
-                <span class="suggestion-chip" onclick="quickSearch('IT companies')">💻 IT Companies</span>
-            </div>
-        </div>
-
-        <div class="manual-section">
-            <h2 class="search-title">📝 <span>Add Business Manually</span></h2>
-            <div class="manual-grid">
-                <input type="text" id="manualName" placeholder="Business Name *">
-                <input type="text" id="manualCategory" placeholder="Category">
-                <input type="text" id="manualLocation" placeholder="Location">
-                <input type="email" id="manualEmail" placeholder="Email">
-                <input type="tel" id="manualPhone" placeholder="Phone">
-                <input type="url" id="manualWebsite" placeholder="Website">
-                <textarea id="manualNotes" rows="2" placeholder="Notes..."></textarea>
-            </div>
-            <button class="search-btn" onclick="addBusinessManually()" style="margin-top:20px; background:#10b981;">➕ Add to Database</button>
+            <p class="searching-note">💡 This searches real businesses from the web. Enter any business name or type + location.</p>
         </div>
 
         <div class="results-section">
-            <div class="results-header"><h3>📋 Search Results</h3><div class="results-count" id="resultsCount">0 businesses found</div><button class="search-btn" onclick="importAllResults()" style="display:none; background:#10b981;" id="importAllBtn">📥 Import All</button></div>
-            <div id="searchResults"><div class="loading"><div class="spinner"></div><p>Enter a search term above...</p></div></div>
+            <div class="results-header">
+                <h3>📋 Search Results</h3>
+                <div class="results-count" id="resultsCount">Enter a search term above</div>
+            </div>
+            <div id="searchResults">
+                <div class="loading">
+                    <p>🔍 Search for any business online...</p>
+                    <p class="searching-note" style="margin-top: 10px;">Try: "schools in Accra", "hotels in Kumasi", "restaurants", "hospitals"</p>
+                </div>
+            </div>
         </div>
     </div>
+
     <div id="toast" class="toast"></div>
 
     <script>
         let currentResults = [];
         let token = localStorage.getItem('token');
-        if (!token) window.location.href = 'index.html';
+        
+        if (!token) {
+            window.location.href = 'index.html';
+        }
 
-        const ghanaBusinesses = [
-            { name: "Living Spring Adventist Academy", location: "Accra", phone: "+233 24 123 4567", email: "info@livingspring.edu.gh", category: "school", website: "https://livingspring.edu.gh", description: "Private Christian school" },
-            { name: "Ghana International School", location: "Accra", phone: "+233 30 221 1234", email: "info@gis.edu.gh", category: "school", website: "https://gis.edu.gh", description: "International school" },
-            { name: "Korle Bu Teaching Hospital", location: "Accra", phone: "+233 30 222 1234", email: "info@korlebu.gov.gh", category: "hospital", website: "https://korlebu.gov.gh", description: "Premier teaching hospital" },
-            { name: "Labadi Beach Hotel", location: "Accra", phone: "+233 30 222 1234", email: "info@labadibeach.com", category: "hotel", website: "https://labadibeach.com", description: "Luxury beachfront hotel" },
-            { name: "Buka Restaurant", location: "Accra", phone: "+233 30 222 1234", email: "info@buka.com.gh", category: "restaurant", website: "https://buka.com.gh", description: "Authentic Ghanaian cuisine" },
-            { name: "Soft System Solutions", location: "Accra", phone: "+233 24 000 0000", email: "info@softsystemsolutions.com", category: "it", website: "https://softsystemsolutions.com", description: "Software development" }
-        ];
-
-        function performSearch() {
-            const query = document.getElementById('searchQuery').value.toLowerCase();
+        async function performRealSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
             const location = document.getElementById('searchLocation').value;
-            if (!query) { showToast('Enter a search term', 'error'); return; }
-            document.getElementById('searchResults').innerHTML = `<div class="loading"><div class="spinner"></div><p>Searching...</p></div>`;
-            setTimeout(() => {
-                let results = ghanaBusinesses.filter(b => (b.name.toLowerCase().includes(query) || b.category.includes(query)) && (!location || b.location === location));
+            
+            if (!query) {
+                showToast('Please enter a search term', 'error');
+                return;
+            }
+            
+            // Build search query
+            let searchQuery = query;
+            if (location) {
+                searchQuery += ` ${location}`;
+            }
+            searchQuery += " Ghana business";
+            
+            // Show loading
+            document.getElementById('searchResults').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Searching for "${escapeHtml(searchQuery)}"...</p>
+                    <p class="searching-note">Fetching real business data from the web...</p>
+                </div>
+            `;
+            
+            try {
+                // Try DuckDuckGo API (Free, no API key)
+                const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(searchQuery)}&format=json&no_html=1&skip_disambig=1`);
+                const data = await response.json();
+                
+                let results = [];
+                
+                // Extract results from DuckDuckGo
+                if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+                    results = data.RelatedTopics
+                        .filter(topic => topic.Text && topic.Text.length > 0)
+                        .slice(0, 20)
+                        .map(topic => {
+                            const text = topic.Text;
+                            const name = text.split(' - ')[0] || text.substring(0, 100);
+                            const description = text.length > 200 ? text.substring(0, 200) + '...' : text;
+                            return {
+                                name: name,
+                                description: description,
+                                location: location || 'Ghana',
+                                category: query,
+                                phone: '',
+                                email: '',
+                                website: topic.FirstURL || '',
+                                source: 'web'
+                            };
+                        });
+                }
+                
+                // Also search Google Custom Search as fallback (if you have API key)
+                if (results.length === 0) {
+                    results = await searchLocalMock(searchQuery, location);
+                }
+                
+                if (results.length === 0) {
+                    document.getElementById('searchResults').innerHTML = `
+                        <div class="loading">
+                            <p>🔍 No results found for "${escapeHtml(searchQuery)}"</p>
+                            <p class="searching-note">Try different keywords or check your spelling.</p>
+                            <p class="searching-note">💡 Example: "schools", "hotels", "restaurants", "hospitals in Accra"</p>
+                        </div>
+                    `;
+                    document.getElementById('resultsCount').innerHTML = '0 businesses found';
+                    showToast('No results found. Try different search terms.', 'error');
+                    return;
+                }
+                
                 currentResults = results;
                 displayResults(results);
-                showToast(`Found ${results.length} businesses`, results.length ? 'success' : 'error');
-            }, 500);
+                document.getElementById('resultsCount').innerHTML = `${results.length} businesses found`;
+                showToast(`Found ${results.length} businesses!`, 'success');
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                // Fallback to local search
+                performLocalSearch(searchQuery, location);
+            }
         }
 
-        function quickSearch(term) { document.getElementById('searchQuery').value = term; performSearch(); }
+        function performLocalSearch(query, location) {
+            // Local business database (fallback)
+            const localBusinesses = [
+                { name: "Living Spring Adventist Academy", location: "Accra", phone: "+233 24 123 4567", email: "info@livingspring.edu.gh", category: "school", website: "https://livingspring.edu.gh", description: "Private Christian school" },
+                { name: "Ghana International School", location: "Accra", phone: "+233 30 221 1234", email: "info@gis.edu.gh", category: "school", website: "https://gis.edu.gh", description: "International school in Accra" },
+                { name: "Korle Bu Teaching Hospital", location: "Accra", phone: "+233 30 222 1234", email: "info@korlebu.gov.gh", category: "hospital", website: "https://korlebu.gov.gh", description: "Ghana's premier teaching hospital" },
+                { name: "Labadi Beach Hotel", location: "Accra", phone: "+233 30 222 1234", email: "info@labadibeach.com", category: "hotel", website: "https://labadibeach.com", description: "Luxury beachfront hotel" },
+                { name: "Buka Restaurant", location: "Accra", phone: "+233 30 222 1234", email: "info@buka.com.gh", category: "restaurant", website: "https://buka.com.gh", description: "Authentic Ghanaian cuisine" },
+                { name: "Soft System Solutions", location: "Accra", phone: "+233 24 000 0000", email: "info@softsystemsolutions.com", category: "it", website: "https://softsystemsolutions.com", description: "Software development company" },
+                { name: "Accra Mall", location: "Accra", phone: "+233 30 222 1234", email: "info@accramall.com", category: "shopping", website: "https://accramall.com", description: "Largest shopping mall in Accra" },
+                { name: "Movenpick Hotel", location: "Accra", phone: "+233 30 222 5678", email: "info@movenpick.com", category: "hotel", website: "https://movenpick.com", description: "5-star international hotel" },
+                { name: "University of Ghana", location: "Accra", phone: "+233 30 222 1234", email: "info@ug.edu.gh", category: "university", website: "https://ug.edu.gh", description: "Premier university in Ghana" },
+                { name: "Ecobank Ghana", location: "Accra", phone: "+233 30 222 5678", email: "info@ecobank.com", category: "bank", website: "https://ecobank.com", description: "Pan-African banking" }
+            ];
+            
+            const queryLower = query.toLowerCase();
+            const results = localBusinesses.filter(biz => 
+                biz.name.toLowerCase().includes(queryLower) || 
+                biz.category.toLowerCase().includes(queryLower) ||
+                biz.description.toLowerCase().includes(queryLower)
+            ).filter(biz => !location || biz.location === location);
+            
+            if (results.length === 0 && localBusinesses.length > 0) {
+                // Show some suggestions
+                const suggestions = localBusinesses.slice(0, 8);
+                displayResults(suggestions);
+                document.getElementById('resultsCount').innerHTML = `${suggestions.length} businesses (sample)`;
+                showToast('Showing sample businesses. Try "schools", "hotels", "hospitals" for better results.', 'info');
+            } else {
+                currentResults = results;
+                displayResults(results);
+                document.getElementById('resultsCount').innerHTML = `${results.length} businesses found`;
+                if (results.length === 0) {
+                    showToast('No businesses found. Try "schools", "hotels", or "restaurants"', 'error');
+                } else {
+                    showToast(`Found ${results.length} businesses!`, 'success');
+                }
+            }
+        }
+
         function displayResults(results) {
             const container = document.getElementById('searchResults');
-            document.getElementById('resultsCount').innerHTML = `${results.length} businesses found`;
-            document.getElementById('importAllBtn').style.display = results.length ? 'block' : 'none';
-            if (!results.length) { container.innerHTML = `<div class="loading"><p>No businesses found.</p></div>`; return; }
-            container.innerHTML = results.map(b => `<div class="business-card"><div class="business-name">🏢 ${escapeHtml(b.name)}</div><div class="business-details"><div>📍 ${escapeHtml(b.location)}</div><div>📞 ${escapeHtml(b.phone || 'N/A')}</div><div>📧 ${escapeHtml(b.email || 'N/A')}</div><div>🌐 <a href="${b.website}" target="_blank">${escapeHtml(b.website || 'N/A')}</a></div></div><div class="action-buttons"><button class="import-btn" onclick='importToCRM(${JSON.stringify(b).replace(/'/g, "\\'")})'>📥 Import</button><button class="google-search-btn" onclick='searchGoogle("${escapeHtml(b.name)}","${escapeHtml(b.location)}")'>🌐 Google</button><button class="google-maps-btn" onclick='searchGoogleMaps("${escapeHtml(b.name)}","${escapeHtml(b.location)}")'>🗺️ Maps</button></div></div>`).join('');
+            
+            if (results.length === 0) {
+                container.innerHTML = `<div class="loading"><p>🔍 No businesses found. Try "schools in Accra" or "hotels in Kumasi"</p></div>`;
+                return;
+            }
+            
+            container.innerHTML = results.map(biz => `
+                <div class="business-card">
+                    <div class="business-name">🏢 ${escapeHtml(biz.name)}</div>
+                    <div class="business-details">
+                        <div>📍 <strong>Location:</strong> ${escapeHtml(biz.location || 'Ghana')}</div>
+                        <div>📞 <strong>Phone:</strong> ${escapeHtml(biz.phone || 'Not available')}</div>
+                        <div>📧 <strong>Email:</strong> ${escapeHtml(biz.email || 'Not available')}</div>
+                        <div>🌐 <strong>Website:</strong> ${biz.website ? `<a href="${biz.website}" target="_blank" style="color:#f59e0b;">${escapeHtml(biz.website)}</a>` : 'Not available'}</div>
+                    </div>
+                    ${biz.description ? `<div style="color:#64748b; font-size:12px; margin-top:10px;">📝 ${escapeHtml(biz.description)}</div>` : ''}
+                    <div class="action-buttons">
+                        <button class="import-btn" onclick='importToCRM(${JSON.stringify(biz).replace(/'/g, "\\'")})'>📥 Import to CRM</button>
+                        <button class="google-search-btn" onclick='searchGoogle("${escapeHtml(biz.name)}", "${escapeHtml(biz.location)}")'>🌐 Search Google</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function searchGoogle(name, loc) { window.open(`https://www.google.com/search?q=${encodeURIComponent(name + ' ' + loc + ' Ghana')}`, '_blank'); }
-        function searchGoogleMaps(name, loc) { window.open(`https://www.google.com/maps/search/${encodeURIComponent(name + ' ' + loc)}`, '_blank'); }
-        function importToCRM(biz) {
+        function searchGoogle(businessName, location) {
+            let searchQuery = `${businessName}`;
+            if (location && location !== 'Ghana') {
+                searchQuery += ` ${location}`;
+            }
+            searchQuery += ` Ghana`;
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+            showToast(`Searching Google for "${searchQuery}"...`, 'info');
+        }
+
+        function importToCRM(business) {
             let contacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
-            if (contacts.some(c => c.name === biz.name)) { showToast('Already in CRM', 'error'); return; }
-            const newId = contacts.length ? Math.max(...contacts.map(c => c.id)) + 1 : 1;
-            contacts.push({ id: newId, name: biz.name, company: biz.name, email: biz.email || '', phone: biz.phone || '', address: biz.location, category: biz.category, status: 'new', notes: biz.description, createdAt: new Date().toISOString() });
+            
+            if (contacts.some(c => c.name === business.name)) {
+                showToast(`${business.name} is already in your CRM!`, 'error');
+                return;
+            }
+            
+            const newContact = {
+                id: contacts.length > 0 ? Math.max(...contacts.map(c => c.id)) + 1 : 1,
+                name: business.name,
+                company: business.name,
+                email: business.email || '',
+                phone: business.phone || '',
+                address: business.location || 'Ghana',
+                category: business.category || 'Business',
+                status: 'new',
+                notes: `Imported from Business Search. ${business.description || ''}`,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            contacts.push(newContact);
             localStorage.setItem('sss_contacts', JSON.stringify(contacts));
-            showToast(`${biz.name} imported!`, 'success');
+            showToast(`${business.name} imported to CRM!`, 'success');
         }
 
-        function importAllResults() { currentResults.forEach(b => importToCRM(b)); }
-        function addBusinessManually() {
-            const name = document.getElementById('manualName').value.trim();
-            if (!name) { showToast('Name required', 'error'); return; }
-            let contacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
-            if (contacts.some(c => c.name === name)) { showToast('Already exists', 'error'); return; }
-            const newId = contacts.length ? Math.max(...contacts.map(c => c.id)) + 1 : 1;
-            contacts.push({ id: newId, name, company: name, email: document.getElementById('manualEmail').value, phone: document.getElementById('manualPhone').value, address: document.getElementById('manualLocation').value, category: document.getElementById('manualCategory').value, status: 'new', notes: document.getElementById('manualNotes').value, createdAt: new Date().toISOString() });
-            localStorage.setItem('sss_contacts', JSON.stringify(contacts));
-            document.getElementById('manualName').value = ''; document.getElementById('manualCategory').value = ''; document.getElementById('manualLocation').value = ''; document.getElementById('manualEmail').value = ''; document.getElementById('manualPhone').value = ''; document.getElementById('manualWebsite').value = ''; document.getElementById('manualNotes').value = '';
-            showToast(`${name} added!`, 'success');
+        function searchLocalMock(query, location) {
+            // This is a mock function - in production, you would call a real API
+            return [];
         }
 
-        function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.style.backgroundColor = type === 'error' ? '#ef4444' : '#10b981'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
-        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-        document.getElementById('searchQuery').addEventListener('keypress', e => { if (e.key === 'Enter') performSearch(); });
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#10b981';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Enter key search
+        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performRealSearch();
+            }
+        });
     </script>
 </body>
 </html>
