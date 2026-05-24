@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Soft System Solutions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: #0f0f1a;
+            color: #ffffff;
+        }
+
+        .navbar {
+            background: #1a1a2e;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 1px solid rgba(245,158,11,0.3);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #f59e0b;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid rgba(245,158,11,0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: #f59e0b;
+            color: #0f0f1a;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .settings-card {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+
+        .settings-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #f59e0b;
+        }
+
+        .settings-subtitle {
+            color: #a0a0c0;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #a0a0c0;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: #0f0f1a;
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .btn-primary {
+            background: #f59e0b;
+            color: #0f0f1a;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .api-status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+        .api-status.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #10b981;
+        }
+
+        .api-status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .api-status.info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; text-align: center; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Soft System<span>Solutions</span></div>
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+            <button class="nav-btn" onclick="window.location.href='crm.html'">📞 CRM</button>
+            <button class="nav-btn" onclick="window.location.href='search.html'">🔍 Business Search</button>
+            <button class="nav-btn" onclick="window.location.href='proposals.html'">📄 Proposals</button>
+            <button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
+            <button class="nav-btn active">⚙️ Settings</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Google API Settings -->
+        <div class="settings-card">
+            <h2 class="settings-title">🔑 Google API Settings</h2>
+            <p class="settings-subtitle">Configure your Google Places API key for business search functionality</p>
+
+            <div class="form-group">
+                <label>Google Places API Key</label>
+                <input type="password" id="googleApiKey" placeholder="Enter your Google Places API key">
+                <small style="color: #64748b; display: block; margin-top: 5px;">
+                    Get your API key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #f59e0b;">Google Cloud Console</a>
+                </small>
+            </div>
+
+            <div class="form-row">
+                <button class="btn-primary" onclick="saveApiKey()">💾 Save API Key</button>
+                <button class="btn-secondary" onclick="testApiKey()">🔍 Test API Key</button>
+            </div>
+
+            <div id="apiStatus" class="api-status" style="display: none;"></div>
+        </div>
+
+        <!-- Company Information Settings -->
+        <div class="settings-card">
+            <h2 class="settings-title">🏢 Company Information</h2>
+            <p class="settings-subtitle">Configure your company details for reports and proposals</p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Company Name</label>
+                    <input type="text" id="companyName" placeholder="Soft System Solutions">
+                </div>
+                <div class="form-group">
+                    <label>Company Address</label>
+                    <input type="text" id="companyAddress" placeholder="Accra, Ghana">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="companyEmail" placeholder="info@softsystemsolutions.com">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="companyPhone" placeholder="+233 XX XXX XXXX">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Company Motto / Tagline</label>
+                    <input type="text" id="companyMotto" placeholder="Excellence in Technology">
+                </div>
+                <div class="form-group">
+                    <label>Logo URL (Optional)</label>
+                    <input type="text" id="logoUrl" placeholder="https://yourdomain.com/logo.png">
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="saveCompanySettings()" style="margin-top: 10px;">💾 Save Company Settings</button>
+        </div>
+
+        <!-- System Settings -->
+        <div class="settings-card">
+            <h2 class="settings-title">⚙️ System Settings</h2>
+            <p class="settings-subtitle">Configure system-wide settings</p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Default Currency</label>
+                    <select id="defaultCurrency">
+                        <option value="GHS">GHS - Ghana Cedi</option>
+                        <option value="USD">USD - US Dollar</option>
+                        <option value="NGN">NGN - Nigerian Naira</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date Format</label>
+                    <select id="dateFormat">
+                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                        <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Items Per Page</label>
+                    <select id="itemsPerPage">
+                        <option value="10">10 items</option>
+                        <option value="25">25 items</option>
+                        <option value="50">50 items</option>
+                        <option value="100">100 items</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Default Country</label>
+                    <select id="defaultCountry">
+                        <option value="Ghana">Ghana</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="USA">USA</option>
+                        <option value="UK">UK</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="saveSystemSettings()" style="margin-top: 10px;">💾 Save System Settings</button>
+        </div>
+
+        <!-- Proposal Settings -->
+        <div class="settings-card">
+            <h2 class="settings-title">📄 Proposal Settings</h2>
+            <p class="settings-subtitle">Configure default proposal templates and terms</p>
+
+            <div class="form-group">
+                <label>Default Proposal Terms & Conditions</label>
+                <textarea id="proposalTerms" rows="4" placeholder="Enter your standard terms and conditions for proposals..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Default Proposal Footer Note</label>
+                <textarea id="proposalFooter" rows="2" placeholder="Thank you for choosing Soft System Solutions"></textarea>
+            </div>
+
+            <button class="btn-primary" onclick="saveProposalSettings()" style="margin-top: 10px;">💾 Save Proposal Settings</button>
+        </div>
+
+        <!-- Email Settings -->
+        <div class="settings-card">
+            <h2 class="settings-title">📧 Email Settings</h2>
+            <p class="settings-subtitle">Configure email notifications (coming soon)</p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SMTP Server</label>
+                    <input type="text" id="smtpServer" placeholder="smtp.gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>SMTP Port</label>
+                    <input type="text" id="smtpPort" placeholder="587">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SMTP Username</label>
+                    <input type="email" id="smtpUsername" placeholder="your-email@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>SMTP Password</label>
+                    <input type="password" id="smtpPassword" placeholder="your-password">
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="saveEmailSettings()" style="margin-top: 10px;">💾 Save Email Settings</button>
+        </div>
+
+        <!-- Data Management -->
+        <div class="settings-card">
+            <h2 class="settings-title">📦 Data Management</h2>
+            <p class="settings-subtitle">Export or clear your data</p>
+
+            <div class="form-row">
+                <button class="btn-secondary" onclick="exportAllData()">📥 Export All Data (JSON)</button>
+                <button class="btn-secondary" onclick="exportContactsCSV()">📥 Export Contacts (CSV)</button>
+                <button class="btn-secondary" onclick="clearAllData()" style="border-color: #ef4444; color: #ef4444;">🗑️ Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const API_URL = '';
+        let token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+
+        // Load all settings on page load
+        function loadAllSettings() {
+            // Load Google API Key
+            const savedApiKey = localStorage.getItem('google_api_key');
+            if (savedApiKey) {
+                document.getElementById('googleApiKey').value = savedApiKey;
+            }
+
+            // Load Company Settings
+            document.getElementById('companyName').value = localStorage.getItem('companyName') || 'Soft System Solutions';
+            document.getElementById('companyAddress').value = localStorage.getItem('companyAddress') || 'Accra, Ghana';
+            document.getElementById('companyEmail').value = localStorage.getItem('companyEmail') || 'info@softsystemsolutions.com';
+            document.getElementById('companyPhone').value = localStorage.getItem('companyPhone') || '+233 24 000 0000';
+            document.getElementById('companyMotto').value = localStorage.getItem('companyMotto') || 'Excellence in Technology';
+            document.getElementById('logoUrl').value = localStorage.getItem('logoUrl') || '';
+
+            // Load System Settings
+            document.getElementById('defaultCurrency').value = localStorage.getItem('defaultCurrency') || 'GHS';
+            document.getElementById('dateFormat').value = localStorage.getItem('dateFormat') || 'DD/MM/YYYY';
+            document.getElementById('itemsPerPage').value = localStorage.getItem('itemsPerPage') || '25';
+            document.getElementById('defaultCountry').value = localStorage.getItem('defaultCountry') || 'Ghana';
+
+            // Load Proposal Settings
+            document.getElementById('proposalTerms').value = localStorage.getItem('proposalTerms') || 'Payment is due within 30 days of invoice date. All prices are in GHS and exclude VAT unless stated otherwise.';
+            document.getElementById('proposalFooter').value = localStorage.getItem('proposalFooter') || 'Thank you for choosing Soft System Solutions';
+
+            // Load Email Settings
+            document.getElementById('smtpServer').value = localStorage.getItem('smtpServer') || '';
+            document.getElementById('smtpPort').value = localStorage.getItem('smtpPort') || '';
+            document.getElementById('smtpUsername').value = localStorage.getItem('smtpUsername') || '';
+            // Don't load password for security
+        }
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('googleApiKey').value.trim();
+            
+            if (!apiKey) {
+                showToast('Please enter an API key', 'error');
+                return;
+            }
+
+            localStorage.setItem('google_api_key', apiKey);
+            
+            const statusDiv = document.getElementById('apiStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'api-status success';
+            statusDiv.innerHTML = '✅ API Key saved successfully!';
+            showToast('API Key saved successfully!', 'success');
+        }
+
+        async function testApiKey() {
+            const apiKey = document.getElementById('googleApiKey').value.trim();
+            
+            if (!apiKey) {
+                showToast('Please save an API key first', 'error');
+                return;
+            }
+
+            const statusDiv = document.getElementById('apiStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'api-status info';
+            statusDiv.innerHTML = '⏳ Testing API key...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/search/google-places?query=schools&location=Accra`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success && data.results && data.results.length > 0) {
+                    statusDiv.className = 'api-status success';
+                    statusDiv.innerHTML = '✅ API Key is working! Found ' + data.results.length + ' businesses.';
+                    showToast('API Key is valid and working!', 'success');
+                } else {
+                    statusDiv.className = 'api-status error';
+                    statusDiv.innerHTML = '❌ API Key test failed. Please check your API key and make sure Places API is enabled.';
+                    showToast('API Key test failed', 'error');
+                }
+            } catch (error) {
+                statusDiv.className = 'api-status error';
+                statusDiv.innerHTML = '❌ Error testing API key: ' + error.message;
+                showToast('Error testing API key', 'error');
+            }
+        }
+
+        function saveCompanySettings() {
+            const settings = {
+                companyName: document.getElementById('companyName').value,
+                companyAddress: document.getElementById('companyAddress').value,
+                companyEmail: document.getElementById('companyEmail').value,
+                companyPhone: document.getElementById('companyPhone').value,
+                companyMotto: document.getElementById('companyMotto').value,
+                logoUrl: document.getElementById('logoUrl').value
+            };
+
+            Object.entries(settings).forEach(([key, value]) => {
+                localStorage.setItem(key, value);
+            });
+
+            showToast('Company settings saved successfully!', 'success');
+        }
+
+        function saveSystemSettings() {
+            const settings = {
+                defaultCurrency: document.getElementById('defaultCurrency').value,
+                dateFormat: document.getElementById('dateFormat').value,
+                itemsPerPage: document.getElementById('itemsPerPage').value,
+                defaultCountry: document.getElementById('defaultCountry').value
+            };
+
+            Object.entries(settings).forEach(([key, value]) => {
+                localStorage.setItem(key, value);
+            });
+
+            showToast('System settings saved successfully!', 'success');
+        }
+
+        function saveProposalSettings() {
+            const terms = document.getElementById('proposalTerms').value;
+            const footer = document.getElementById('proposalFooter').value;
+
+            localStorage.setItem('proposalTerms', terms);
+            localStorage.setItem('proposalFooter', footer);
+
+            showToast('Proposal settings saved successfully!', 'success');
+        }
+
+        function saveEmailSettings() {
+            const settings = {
+                smtpServer: document.getElementById('smtpServer').value,
+                smtpPort: document.getElementById('smtpPort').value,
+                smtpUsername: document.getElementById('smtpUsername').value,
+                smtpPassword: document.getElementById('smtpPassword').value
+            };
+
+            Object.entries(settings).forEach(([key, value]) => {
+                if (value) localStorage.setItem(key, value);
+            });
+
+            showToast('Email settings saved successfully!', 'success');
+            document.getElementById('smtpPassword').value = '';
+        }
+
+        function exportAllData() {
+            const data = {
+                contacts: JSON.parse(localStorage.getItem('sss_contacts') || '[]'),
+                proposals: JSON.parse(localStorage.getItem('sss_proposals') || '[]'),
+                businesses: JSON.parse(localStorage.getItem('sss_businesses') || '[]'),
+                whatsapp_logs: JSON.parse(localStorage.getItem('sss_whatsapp_logs') || '[]'),
+                templates: JSON.parse(localStorage.getItem('sss_whatsapp_templates') || '[]'),
+                settings: {
+                    google_api_key: localStorage.getItem('google_api_key') ? '[HIDDEN]' : null,
+                    companyName: localStorage.getItem('companyName'),
+                    companyAddress: localStorage.getItem('companyAddress'),
+                    companyEmail: localStorage.getItem('companyEmail'),
+                    companyPhone: localStorage.getItem('companyPhone'),
+                    companyMotto: localStorage.getItem('companyMotto'),
+                    defaultCurrency: localStorage.getItem('defaultCurrency'),
+                    dateFormat: localStorage.getItem('dateFormat'),
+                    itemsPerPage: localStorage.getItem('itemsPerPage'),
+                    defaultCountry: localStorage.getItem('defaultCountry'),
+                    proposalTerms: localStorage.getItem('proposalTerms'),
+                    proposalFooter: localStorage.getItem('proposalFooter')
+                }
+            };
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `softsystem_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully!', 'success');
+        }
+
+        function exportContactsCSV() {
+            const contacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
+            
+            if (contacts.length === 0) {
+                showToast('No contacts to export', 'error');
+                return;
+            }
+
+            const csv = [
+                ['Name', 'Company', 'Email', 'Phone', 'Address', 'Category', 'Status', 'Notes', 'Created Date'],
+                ...contacts.map(c => [
+                    c.name, c.company || '', c.email || '', c.phone || '', 
+                    c.address || '', c.category || '', c.status || 'new', c.notes || '',
+                    new Date(c.createdAt).toLocaleDateString()
+                ])
+            ].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `contacts_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Contacts exported successfully!', 'success');
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ WARNING: This will delete ALL your contacts, proposals, and business data. This action cannot be undone!\n\nAre you absolutely sure?')) {
+                localStorage.removeItem('sss_contacts');
+                localStorage.removeItem('sss_proposals');
+                localStorage.removeItem('sss_businesses');
+                localStorage.removeItem('sss_whatsapp_logs');
+                localStorage.removeItem('sss_whatsapp_templates');
+                showToast('All data cleared! Page will refresh.', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = type === 'error' ? '#ef4444' : '#10b981';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        // Load all settings on page load
+        loadAllSettings();
+    </script>
+</body>
+</html>
