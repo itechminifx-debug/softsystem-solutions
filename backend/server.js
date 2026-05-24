@@ -54,7 +54,6 @@ app.post('/api/auth/login', async (req, res) => {
     console.log('Login attempt:', username);
     
     try {
-        // First check hardcoded admin for testing
         if (username === 'admin' && password === 'admin123') {
             const token = jwt.sign(
                 { id: 1, username: 'admin', role: 'admin' },
@@ -68,7 +67,6 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
         
-        // Then check database
         const result = await pool.query(
             'SELECT * FROM users WHERE username = $1 OR email = $1',
             [username]
@@ -285,117 +283,13 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
     }
 });
 
-// ==================== BUSINESS SEARCH PROXY (CORS FIX) ====================
-app.get('/api/search/business', async (req, res) => {
-    const { q, location } = req.query;
-    
-    console.log(`Search API called with q: ${q}, location: ${location}`);
-    
-    if (!q) {
-        return res.status(400).json({ error: 'Search query required' });
-    }
-    
-    // Ghana Business Database
-    const ghanaBusinesses = {
-        schools: [
-            { name: "Ghana International School", location: "Accra", phone: "+233 30 221 1234", email: "info@gis.edu.gh", category: "school", rating: 4.5, description: "Premier international school in Accra offering IB curriculum." },
-            { name: "Achimota School", location: "Accra", phone: "+233 30 222 4567", email: "info@achimota.edu.gh", category: "school", rating: 4.6, description: "Famous mixed school established in 1924, known as the 'Eton of Africa'." },
-            { name: "Presbyterian Boys' Secondary School", location: "Accra", phone: "+233 30 222 9876", email: "info@presec.edu.gh", category: "school", rating: 4.7, description: "All-boys boarding school in Legon, Accra." },
-            { name: "Wesley Girls' High School", location: "Cape Coast", phone: "+233 33 202 5678", email: "info@wesleygirls.edu.gh", category: "school", rating: 4.8, description: "Top girls' school in Cape Coast." },
-            { name: "Opoku Ware School", location: "Kumasi", phone: "+233 32 202 5678", email: "info@opokuware.edu.gh", category: "school", rating: 4.6, description: "Premier boys' school in Kumasi." },
-            { name: "Mfantsipim School", location: "Cape Coast", phone: "+233 33 202 2345", email: "info@mfantsipim.edu.gh", category: "school", rating: 4.7, description: "All-boys school in Cape Coast, established 1876." },
-            { name: "St. Augustine's College", location: "Cape Coast", phone: "+233 33 202 8901", email: "info@staugustine.edu.gh", category: "school", rating: 4.5, description: "Boys' school in Cape Coast." },
-            { name: "Holy Child School", location: "Cape Coast", phone: "+233 33 202 1234", email: "info@holychild.edu.gh", category: "school", rating: 4.6, description: "Girls' school in Cape Coast." },
-            { name: "Living Spring Adventist Academy", location: "Accra", phone: "+233 24 123 4567", email: "info@livingspring.edu.gh", category: "school", rating: 4.4, description: "Private Christian school offering quality education." }
-        ],
-        hotels: [
-            { name: "Labadi Beach Hotel", location: "Accra", phone: "+233 30 222 1234", email: "info@labadibeach.com", category: "hotel", rating: 4.7, description: "Luxury beachfront hotel in Accra." },
-            { name: "Movenpick Ambassador Hotel", location: "Accra", phone: "+233 30 222 5678", email: "info@movenpick.com", category: "hotel", rating: 4.8, description: "5-star hotel in central Accra." },
-            { name: "Kempinski Hotel Gold Coast City", location: "Accra", phone: "+233 30 222 9012", email: "info@kempinski.com", category: "hotel", rating: 4.9, description: "Luxury hotel in Accra." },
-            { name: "Golden Tulip Accra", location: "Accra", phone: "+233 30 222 3456", email: "info@goldentulip.com", category: "hotel", rating: 4.4, description: "International hotel chain in Accra." },
-            { name: "Miklin Hotel", location: "Kumasi", phone: "+233 32 202 1234", email: "info@miklinhotel.com", category: "hotel", rating: 4.5, description: "Premium hotel in Kumasi." }
-        ],
-        hospitals: [
-            { name: "Korle Bu Teaching Hospital", location: "Accra", phone: "+233 30 222 1234", email: "info@korlebu.gov.gh", category: "hospital", rating: 4.2, description: "Ghana's premier teaching hospital in Accra." },
-            { name: "Komfo Anokye Teaching Hospital", location: "Kumasi", phone: "+233 32 202 1234", email: "info@kath.gov.gh", category: "hospital", rating: 4.1, description: "Major referral hospital in Kumasi." },
-            { name: "37 Military Hospital", location: "Accra", phone: "+233 30 222 5678", email: "info@37militaryhospital.com", category: "hospital", rating: 4.3, description: "Military hospital serving civilians in Accra." },
-            { name: "University of Ghana Medical Centre", location: "Accra", phone: "+233 30 222 3456", email: "info@ugmc.edu.gh", category: "hospital", rating: 4.5, description: "Modern medical facility in Legon, Accra." },
-            { name: "Trust Hospital", location: "Accra", phone: "+233 30 222 9012", email: "info@trusthospital.com", category: "hospital", rating: 4.2, description: "Private hospital in Accra." }
-        ],
-        restaurants: [
-            { name: "Buka Restaurant", location: "Accra", phone: "+233 30 222 1234", email: "info@buka.com.gh", category: "restaurant", rating: 4.6, description: "Authentic Ghanaian cuisine in Accra." },
-            { name: "Zen Garden", location: "Accra", phone: "+233 30 222 5678", email: "info@zengarden.com", category: "restaurant", rating: 4.5, description: "Asian and continental dishes in Accra." },
-            { name: "Santoku", location: "Accra", phone: "+233 30 222 9012", email: "info@santoku.com", category: "restaurant", rating: 4.7, description: "Japanese restaurant in Accra." },
-            { name: "Papaye", location: "Kumasi", phone: "+233 32 202 1234", email: "info@papaye.com", category: "restaurant", rating: 4.3, description: "Fast food restaurant in Kumasi and Accra." }
-        ],
-        banks: [
-            { name: "Ghana Commercial Bank (GCB)", location: "Accra", phone: "+233 30 222 1234", email: "info@gcb.com.gh", category: "bank", rating: 4.2, description: "Largest commercial bank in Ghana." },
-            { name: "Ecobank Ghana", location: "Accra", phone: "+233 30 222 5678", email: "info@ecobank.com", category: "bank", rating: 4.3, description: "Pan-African banking group." },
-            { name: "Stanbic Bank Ghana", location: "Accra", phone: "+233 30 222 9012", email: "info@stanbic.com", category: "bank", rating: 4.4, description: "International banking services." },
-            { name: "Absa Bank Ghana", location: "Accra", phone: "+233 30 222 3456", email: "info@absa.com.gh", category: "bank", rating: 4.3, description: "Formerly Barclays Bank." }
-        ],
-        it: [
-            { name: "Soft System Solutions", location: "Accra", phone: "+233 24 000 0000", email: "info@softsystemsolutions.com", category: "it", rating: 5.0, description: "Software development and IT consulting." },
-            { name: "IT Consults Ghana", location: "Accra", phone: "+233 24 111 2222", email: "info@itconsults.com", category: "it", rating: 4.5, description: "IT consulting and solutions provider." },
-            { name: "Web Solutions Ghana", location: "Accra", phone: "+233 24 333 4444", email: "info@websolutionsgh.com", category: "it", rating: 4.4, description: "Web development and digital marketing." }
-        ]
-    };
-    
-    try {
-        let results = [];
-        const queryLower = q.toLowerCase();
-        
-        // Find matching category
-        const categoryMap = {
-            'school': 'schools', 'schools': 'schools',
-            'hotel': 'hotels', 'hotels': 'hotels',
-            'hospital': 'hospitals', 'hospitals': 'hospitals',
-            'restaurant': 'restaurants', 'restaurants': 'restaurants',
-            'bank': 'banks', 'banks': 'banks',
-            'it': 'it', 'it companies': 'it', 'tech': 'it'
-        };
-        
-        const matchedCategory = categoryMap[queryLower];
-        
-        if (matchedCategory && ghanaBusinesses[matchedCategory]) {
-            results = [...ghanaBusinesses[matchedCategory]];
-        } else {
-            // Search across all categories
-            for (const category of Object.keys(ghanaBusinesses)) {
-                for (const biz of ghanaBusinesses[category]) {
-                    if (biz.name.toLowerCase().includes(queryLower) || 
-                        biz.category.toLowerCase().includes(queryLower)) {
-                        results.push(biz);
-                    }
-                }
-            }
-        }
-        
-        // Filter by location if specified
-        if (location && location !== 'all' && location !== '') {
-            results = results.filter(biz => biz.location === location);
-        }
-        
-        // If no results, return sample from first category
-        if (results.length === 0) {
-            results = ghanaBusinesses.schools.slice(0, 8);
-        }
-        
-        res.json({ success: true, results: results });
-        
-    } catch (error) {
-        console.error('Search error:', error);
-        res.json({ 
-            success: true, 
-            results: ghanaBusinesses.schools.slice(0, 8)
-        });
-    }
-});
 // ==================== GOOGLE PLACES API PROXY ====================
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyDUQPjapUS2gmisamwtqQF5CbC6C-jUoDI';
 
 app.get('/api/search/google-places', authenticateToken, async (req, res) => {
     const { query, location } = req.query;
+    
+    console.log(`Google Places Search: ${query} in ${location}`);
     
     if (!query) {
         return res.status(400).json({ error: 'Search query required' });
@@ -403,13 +297,14 @@ app.get('/api/search/google-places', authenticateToken, async (req, res) => {
     
     let searchQuery = `${query} in ${location || 'Accra'} Ghana`;
     
-    console.log(`Searching Google Places for: ${searchQuery}`);
-    
     try {
         const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&key=${GOOGLE_API_KEY}`;
+        console.log('Calling Google Places API:', url);
         
         const response = await fetch(url);
         const data = await response.json();
+        
+        console.log('Google Places API response status:', data.status);
         
         if (data.status === 'OK' && data.results) {
             const results = data.results.map(place => ({
@@ -420,49 +315,22 @@ app.get('/api/search/google-places', authenticateToken, async (req, res) => {
                 total_ratings: place.user_ratings_total || 0,
                 phone: place.formatted_phone_number || 'Not available',
                 website: place.website || '',
-                price_level: place.price_level || 'N/A',
                 place_id: place.place_id,
                 lat: place.geometry.location.lat,
-                lng: place.geometry.location.lng
+                lng: place.geometry.location.lng,
+                category: query
             }));
-            
             res.json({ success: true, results: results });
         } else {
-            console.log('Google Places API response:', data.status);
-            res.json({ success: false, results: [], message: data.status });
+            console.log('Google Places API returned:', data.status, data.error_message);
+            res.json({ success: false, results: [], message: data.status, error: data.error_message });
         }
-        
     } catch (error) {
         console.error('Google Places API error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// ==================== GOOGLE PLACES DETAILS API ====================
-app.get('/api/search/place-details', authenticateToken, async (req, res) => {
-    const { place_id } = req.query;
-    
-    if (!place_id) {
-        return res.status(400).json({ error: 'Place ID required' });
-    }
-    
-    try {
-        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&key=${GOOGLE_API_KEY}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.status === 'OK') {
-            res.json({ success: true, details: data.result });
-        } else {
-            res.json({ success: false, message: data.status });
-        }
-        
-    } catch (error) {
-        console.error('Google Places Details error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
 // ==================== HEALTH CHECK ====================
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running!' });
@@ -487,7 +355,7 @@ app.listen(PORT, () => {
 ║     Server running on http://localhost:${PORT}             ║
 ║                                                           ║
 ║     ✅ PostgreSQL Connected!                             ║
-║     ✅ Business Search API Ready!                        ║
+║     ✅ Google Places API Ready!                          ║
 ║                                                           ║
 ║     🔐 Login: admin / admin123                           ║
 ║                                                           ║
