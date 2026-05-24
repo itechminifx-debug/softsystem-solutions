@@ -73,6 +73,25 @@
             padding: 30px 20px;
         }
 
+        /* API Key Warning */
+        .api-warning {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .api-warning p {
+            color: #fca5a5;
+            font-size: 14px;
+        }
+
+        .api-warning a {
+            color: #f59e0b;
+        }
+
         .search-section {
             background: #1a1a2e;
             border-radius: 20px;
@@ -285,11 +304,19 @@
             <button class="nav-btn active">🔍 Business Search</button>
             <button class="nav-btn" onclick="window.location.href='proposals.html'">📄 Proposals</button>
             <button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
+            <button class="nav-btn" onclick="window.location.href='settings.html'">⚙️ Settings</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
     </nav>
 
     <div class="container">
+        <!-- API Key Warning -->
+        <div id="apiWarning" class="api-warning">
+            <p>⚠️ <strong>Google API Key Not Configured</strong></p>
+            <p>Please go to <a href="settings.html">Settings</a> to add your Google Places API key for real business search.</p>
+            <p>Without an API key, you will see sample business data only.</p>
+        </div>
+
         <div class="search-section">
             <h2 class="search-title">🔍 <span>Business Search</span> - Find Companies in Ghana</h2>
             
@@ -346,9 +373,52 @@
 
         const API_URL = '';
 
+        // Check if API key exists in localStorage
+        function checkApiKey() {
+            const apiKey = localStorage.getItem('google_api_key');
+            const warningDiv = document.getElementById('apiWarning');
+            
+            if (!apiKey) {
+                warningDiv.style.display = 'block';
+                return false;
+            }
+            warningDiv.style.display = 'none';
+            return true;
+        }
+
+        // Local fallback business database
+        const localBusinesses = {
+            schools: [
+                { name: "Ghana International School", location: "Accra", phone: "+233 30 221 1234", email: "info@gis.edu.gh", category: "school", rating: 4.5, description: "Premier international school in Accra." },
+                { name: "Achimota School", location: "Accra", phone: "+233 30 222 4567", email: "info@achimota.edu.gh", category: "school", rating: 4.6, description: "Famous mixed school established in 1924." },
+                { name: "Presbyterian Boys' Secondary School", location: "Accra", phone: "+233 30 222 9876", email: "info@presec.edu.gh", category: "school", rating: 4.7, description: "All-boys boarding school in Legon." },
+                { name: "Wesley Girls' High School", location: "Cape Coast", phone: "+233 33 202 5678", email: "info@wesleygirls.edu.gh", category: "school", rating: 4.8, description: "Top girls' school in Cape Coast." },
+                { name: "Living Spring Adventist Academy", location: "Accra", phone: "+233 24 123 4567", email: "info@livingspring.edu.gh", category: "school", rating: 4.4, description: "Private Christian school." }
+            ],
+            hotels: [
+                { name: "Labadi Beach Hotel", location: "Accra", phone: "+233 30 222 1234", email: "info@labadibeach.com", category: "hotel", rating: 4.7, description: "Luxury beachfront hotel." },
+                { name: "Movenpick Ambassador Hotel", location: "Accra", phone: "+233 30 222 5678", email: "info@movenpick.com", category: "hotel", rating: 4.8, description: "5-star hotel in central Accra." },
+                { name: "Kempinski Hotel", location: "Accra", phone: "+233 30 222 9012", email: "info@kempinski.com", category: "hotel", rating: 4.9, description: "Luxury hotel." }
+            ],
+            hospitals: [
+                { name: "Korle Bu Teaching Hospital", location: "Accra", phone: "+233 30 222 1234", email: "info@korlebu.gov.gh", category: "hospital", rating: 4.2, description: "Ghana's premier teaching hospital." },
+                { name: "Komfo Anokye Teaching Hospital", location: "Kumasi", phone: "+233 32 202 1234", email: "info@kath.gov.gh", category: "hospital", rating: 4.1, description: "Major referral hospital." }
+            ],
+            restaurants: [
+                { name: "Buka Restaurant", location: "Accra", phone: "+233 30 222 1234", email: "info@buka.com.gh", category: "restaurant", rating: 4.6, description: "Authentic Ghanaian cuisine." }
+            ],
+            banks: [
+                { name: "Ghana Commercial Bank", location: "Accra", phone: "+233 30 222 1234", email: "info@gcb.com.gh", category: "bank", rating: 4.2, description: "Largest commercial bank." }
+            ],
+            it: [
+                { name: "Soft System Solutions", location: "Accra", phone: "+233 24 000 0000", email: "info@softsystemsolutions.com", category: "it", rating: 5.0, description: "Software development and IT consulting." }
+            ]
+        };
+
         async function searchBusinesses() {
             const query = document.getElementById('searchQuery').value.trim();
             const location = document.getElementById('searchLocation').value;
+            const apiKey = localStorage.getItem('google_api_key');
             
             if (!query) {
                 showToast('Please enter a search term', 'error');
@@ -358,59 +428,37 @@
             document.getElementById('searchResults').innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
-                    <p>Searching Google Places for ${escapeHtml(query)} in ${location || 'Ghana'}...</p>
+                    <p>Searching for ${escapeHtml(query)} in ${location || 'Ghana'}...</p>
                 </div>
             `;
             
-            try {
-                // Call Google Places API through your backend proxy
-                const response = await fetch(`${API_URL}/api/search/google-places?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json();
-                
-                if (data.success && data.results && data.results.length > 0) {
-                    currentResults = data.results;
-                    displayGoogleResults(data.results);
-                    document.getElementById('resultsCount').innerHTML = `${data.results.length} businesses found`;
-                    showToast(`Found ${data.results.length} businesses from Google!`, 'success');
-                } else {
-                    // Fallback to local database
-                    fallbackToLocalSearch(query, location);
+            // If API key exists, try Google Places API
+            if (apiKey) {
+                try {
+                    const response = await fetch(`${API_URL}/api/search/google-places?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success && data.results && data.results.length > 0) {
+                        currentResults = data.results;
+                        displayGoogleResults(data.results);
+                        document.getElementById('resultsCount').innerHTML = `${data.results.length} businesses found`;
+                        showToast(`Found ${data.results.length} businesses from Google!`, 'success');
+                        return;
+                    } else {
+                        console.log('Google API returned no results, using local database');
+                    }
+                } catch (error) {
+                    console.error('Google API error:', error);
                 }
-            } catch (error) {
-                console.error('Google Places API error:', error);
-                // Fallback to local database
-                fallbackToLocalSearch(query, location);
             }
+            
+            // Fallback to local database
+            fallbackToLocalSearch(query, location);
         }
 
         function fallbackToLocalSearch(query, location) {
-            // Local Ghana business database
-            const localBusinesses = {
-                schools: [
-                    { name: "Ghana International School", location: "Accra", phone: "+233 30 221 1234", email: "info@gis.edu.gh", category: "school", rating: 4.5, description: "Premier international school in Accra." },
-                    { name: "Achimota School", location: "Accra", phone: "+233 30 222 4567", email: "info@achimota.edu.gh", category: "school", rating: 4.6, description: "Famous mixed school established in 1924." },
-                    { name: "Presbyterian Boys' Secondary School", location: "Accra", phone: "+233 30 222 9876", email: "info@presec.edu.gh", category: "school", rating: 4.7, description: "All-boys boarding school in Legon." }
-                ],
-                hotels: [
-                    { name: "Labadi Beach Hotel", location: "Accra", phone: "+233 30 222 1234", email: "info@labadibeach.com", category: "hotel", rating: 4.7, description: "Luxury beachfront hotel." },
-                    { name: "Movenpick Ambassador Hotel", location: "Accra", phone: "+233 30 222 5678", email: "info@movenpick.com", category: "hotel", rating: 4.8, description: "5-star hotel in central Accra." }
-                ],
-                hospitals: [
-                    { name: "Korle Bu Teaching Hospital", location: "Accra", phone: "+233 30 222 1234", email: "info@korlebu.gov.gh", category: "hospital", rating: 4.2, description: "Ghana's premier teaching hospital." }
-                ],
-                restaurants: [
-                    { name: "Buka Restaurant", location: "Accra", phone: "+233 30 222 1234", email: "info@buka.com.gh", category: "restaurant", rating: 4.6, description: "Authentic Ghanaian cuisine." }
-                ],
-                banks: [
-                    { name: "Ghana Commercial Bank", location: "Accra", phone: "+233 30 222 1234", email: "info@gcb.com.gh", category: "bank", rating: 4.2, description: "Largest commercial bank in Ghana." }
-                ],
-                it: [
-                    { name: "Soft System Solutions", location: "Accra", phone: "+233 24 000 0000", email: "info@softsystemsolutions.com", category: "it", rating: 5.0, description: "Software development and IT consulting." }
-                ]
-            };
-            
             const queryLower = query.toLowerCase();
             let results = [];
             
@@ -460,8 +508,8 @@
                     </div>
                     <div class="business-details">
                         <div>📍 <strong>Address:</strong> ${escapeHtml(biz.address || biz.location)}</div>
-                        <div>📞 <strong>Phone:</strong> ${escapeHtml(biz.phone || 'Not available')}</div>
-                        <div>📧 <strong>Email:</strong> ${escapeHtml(biz.email || 'Not available')}</div>
+                        <div>📞 <strong>Phone:</strong> ${escapeHtml(biz.phone || 'Call for info')}</div>
+                        <div>📧 <strong>Email:</strong> ${escapeHtml(biz.email || 'Visit for details')}</div>
                         ${biz.description ? `<div>📝 ${escapeHtml(biz.description)}</div>` : ''}
                     </div>
                     <div class="action-buttons">
@@ -512,7 +560,9 @@
             toast.textContent = message;
             toast.style.backgroundColor = type === 'error' ? '#ef4444' : type === 'info' ? '#3b82f6' : '#10b981';
             toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 3000);
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
         }
 
         function logout() {
@@ -535,6 +585,9 @@
                 searchBusinesses();
             }
         });
+
+        // Check API key on page load
+        checkApiKey();
     </script>
 </body>
 </html>
