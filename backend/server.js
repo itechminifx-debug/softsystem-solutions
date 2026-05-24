@@ -391,7 +391,78 @@ app.get('/api/search/business', async (req, res) => {
         });
     }
 });
+// ==================== GOOGLE PLACES API PROXY ====================
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyDUQPjapUS2gmisamwtqQF5CbC6C-jUoDI';
 
+app.get('/api/search/google-places', authenticateToken, async (req, res) => {
+    const { query, location } = req.query;
+    
+    if (!query) {
+        return res.status(400).json({ error: 'Search query required' });
+    }
+    
+    let searchQuery = `${query} in ${location || 'Accra'} Ghana`;
+    
+    console.log(`Searching Google Places for: ${searchQuery}`);
+    
+    try {
+        const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&key=${GOOGLE_API_KEY}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.status === 'OK' && data.results) {
+            const results = data.results.map(place => ({
+                name: place.name,
+                address: place.formatted_address,
+                location: location || 'Ghana',
+                rating: place.rating || 'N/A',
+                total_ratings: place.user_ratings_total || 0,
+                phone: place.formatted_phone_number || 'Not available',
+                website: place.website || '',
+                price_level: place.price_level || 'N/A',
+                place_id: place.place_id,
+                lat: place.geometry.location.lat,
+                lng: place.geometry.location.lng
+            }));
+            
+            res.json({ success: true, results: results });
+        } else {
+            console.log('Google Places API response:', data.status);
+            res.json({ success: false, results: [], message: data.status });
+        }
+        
+    } catch (error) {
+        console.error('Google Places API error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== GOOGLE PLACES DETAILS API ====================
+app.get('/api/search/place-details', authenticateToken, async (req, res) => {
+    const { place_id } = req.query;
+    
+    if (!place_id) {
+        return res.status(400).json({ error: 'Place ID required' });
+    }
+    
+    try {
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&key=${GOOGLE_API_KEY}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.status === 'OK') {
+            res.json({ success: true, details: data.result });
+        } else {
+            res.json({ success: false, message: data.status });
+        }
+        
+    } catch (error) {
+        console.error('Google Places Details error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 // ==================== HEALTH CHECK ====================
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running!' });
