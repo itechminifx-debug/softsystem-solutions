@@ -210,25 +210,46 @@
     </nav>
 
     <div class="container">
-        <!-- Google API Settings -->
+        <!-- Geoapify API Settings (Recommended - Free, No Credit Card) -->
         <div class="settings-card">
-            <h2 class="settings-title">🔑 Google API Settings</h2>
-            <p class="settings-subtitle">Configure your Google Places API key for business search functionality</p>
+            <h2 class="settings-title">🌍 Geoapify API Settings (Recommended)</h2>
+            <p class="settings-subtitle">Free business search API - No credit card required, 3,000 requests/day</p>
+
+            <div class="form-group">
+                <label>Geoapify API Key</label>
+                <input type="password" id="geoapifyApiKey" placeholder="Enter your Geoapify API key">
+                <small style="color: #64748b; display: block; margin-top: 5px;">
+                    Get your free key from <a href="https://myprojects.geoapify.com" target="_blank" style="color: #f59e0b;">Geoapify</a> (No credit card needed)
+                </small>
+            </div>
+
+            <div class="form-row">
+                <button class="btn-primary" onclick="saveGeoapifyKey()">💾 Save Geoapify Key</button>
+                <button class="btn-secondary" onclick="testGeoapifyKey()">🔍 Test Geoapify Key</button>
+            </div>
+
+            <div id="geoapifyStatus" class="api-status" style="display: none;"></div>
+        </div>
+
+        <!-- Google API Settings (Optional - Requires Credit Card) -->
+        <div class="settings-card">
+            <h2 class="settings-title">🔑 Google API Settings (Optional)</h2>
+            <p class="settings-subtitle">Configure your Google Places API key (requires credit card verification)</p>
 
             <div class="form-group">
                 <label>Google Places API Key</label>
                 <input type="password" id="googleApiKey" placeholder="Enter your Google Places API key">
                 <small style="color: #64748b; display: block; margin-top: 5px;">
-                    Get your API key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #f59e0b;">Google Cloud Console</a>
+                    Get your API key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #f59e0b;">Google Cloud Console</a> (requires billing)
                 </small>
             </div>
 
             <div class="form-row">
-                <button class="btn-primary" onclick="saveApiKey()">💾 Save API Key</button>
-                <button class="btn-secondary" onclick="testApiKey()">🔍 Test API Key</button>
+                <button class="btn-primary" onclick="saveGoogleApiKey()">💾 Save Google Key</button>
+                <button class="btn-secondary" onclick="testGoogleApiKey()">🔍 Test Google Key</button>
             </div>
 
-            <div id="apiStatus" class="api-status" style="display: none;"></div>
+            <div id="googleApiStatus" class="api-status" style="display: none;"></div>
         </div>
 
         <!-- Company Information Settings -->
@@ -393,10 +414,16 @@
 
         // Load all settings on page load
         function loadAllSettings() {
+            // Load Geoapify API Key
+            const savedGeoapifyKey = localStorage.getItem('geoapify_api_key');
+            if (savedGeoapifyKey) {
+                document.getElementById('geoapifyApiKey').value = savedGeoapifyKey;
+            }
+
             // Load Google API Key
-            const savedApiKey = localStorage.getItem('google_api_key');
-            if (savedApiKey) {
-                document.getElementById('googleApiKey').value = savedApiKey;
+            const savedGoogleKey = localStorage.getItem('google_api_key');
+            if (savedGoogleKey) {
+                document.getElementById('googleApiKey').value = savedGoogleKey;
             }
 
             // Load Company Settings
@@ -421,38 +448,91 @@
             document.getElementById('smtpServer').value = localStorage.getItem('smtpServer') || '';
             document.getElementById('smtpPort').value = localStorage.getItem('smtpPort') || '';
             document.getElementById('smtpUsername').value = localStorage.getItem('smtpUsername') || '';
-            // Don't load password for security
         }
 
-        function saveApiKey() {
+        // ==================== GEOAPIFY API FUNCTIONS ====================
+        function saveGeoapifyKey() {
+            const apiKey = document.getElementById('geoapifyApiKey').value.trim();
+            
+            if (!apiKey) {
+                showToast('Please enter a Geoapify API key', 'error');
+                return;
+            }
+
+            localStorage.setItem('geoapify_api_key', apiKey);
+            
+            const statusDiv = document.getElementById('geoapifyStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'api-status success';
+            statusDiv.innerHTML = '✅ Geoapify API Key saved successfully! (Free, no credit card needed)';
+            showToast('Geoapify API Key saved successfully!', 'success');
+        }
+
+        async function testGeoapifyKey() {
+            const apiKey = document.getElementById('geoapifyApiKey').value.trim();
+            
+            if (!apiKey) {
+                showToast('Please save a Geoapify API key first', 'error');
+                return;
+            }
+
+            const statusDiv = document.getElementById('geoapifyStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'api-status info';
+            statusDiv.innerHTML = '⏳ Testing Geoapify API key...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/search/geoapify?query=schools&location=Accra`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success && data.results && data.results.length > 0) {
+                    statusDiv.className = 'api-status success';
+                    statusDiv.innerHTML = '✅ Geoapify API Key is working! Found ' + data.results.length + ' businesses. (Free, no charges)';
+                    showToast('Geoapify API Key is valid and working!', 'success');
+                } else {
+                    statusDiv.className = 'api-status error';
+                    statusDiv.innerHTML = '❌ Geoapify API Key test failed. Please check your API key.';
+                    showToast('Geoapify API Key test failed', 'error');
+                }
+            } catch (error) {
+                statusDiv.className = 'api-status error';
+                statusDiv.innerHTML = '❌ Error testing API key: ' + error.message;
+                showToast('Error testing API key', 'error');
+            }
+        }
+
+        // ==================== GOOGLE API FUNCTIONS ====================
+        function saveGoogleApiKey() {
             const apiKey = document.getElementById('googleApiKey').value.trim();
             
             if (!apiKey) {
-                showToast('Please enter an API key', 'error');
+                showToast('Please enter a Google API key', 'error');
                 return;
             }
 
             localStorage.setItem('google_api_key', apiKey);
             
-            const statusDiv = document.getElementById('apiStatus');
+            const statusDiv = document.getElementById('googleApiStatus');
             statusDiv.style.display = 'block';
             statusDiv.className = 'api-status success';
-            statusDiv.innerHTML = '✅ API Key saved successfully!';
-            showToast('API Key saved successfully!', 'success');
+            statusDiv.innerHTML = '✅ Google API Key saved successfully!';
+            showToast('Google API Key saved successfully!', 'success');
         }
 
-        async function testApiKey() {
+        async function testGoogleApiKey() {
             const apiKey = document.getElementById('googleApiKey').value.trim();
             
             if (!apiKey) {
-                showToast('Please save an API key first', 'error');
+                showToast('Please save a Google API key first', 'error');
                 return;
             }
 
-            const statusDiv = document.getElementById('apiStatus');
+            const statusDiv = document.getElementById('googleApiStatus');
             statusDiv.style.display = 'block';
             statusDiv.className = 'api-status info';
-            statusDiv.innerHTML = '⏳ Testing API key...';
+            statusDiv.innerHTML = '⏳ Testing Google API key...';
 
             try {
                 const response = await fetch(`${API_URL}/api/search/google-places?query=schools&location=Accra`, {
@@ -462,12 +542,12 @@
 
                 if (data.success && data.results && data.results.length > 0) {
                     statusDiv.className = 'api-status success';
-                    statusDiv.innerHTML = '✅ API Key is working! Found ' + data.results.length + ' businesses.';
-                    showToast('API Key is valid and working!', 'success');
+                    statusDiv.innerHTML = '✅ Google API Key is working! Found ' + data.results.length + ' businesses.';
+                    showToast('Google API Key is valid and working!', 'success');
                 } else {
                     statusDiv.className = 'api-status error';
-                    statusDiv.innerHTML = '❌ API Key test failed. Please check your API key and make sure Places API is enabled.';
-                    showToast('API Key test failed', 'error');
+                    statusDiv.innerHTML = '❌ Google API Key test failed. Please check your API key and make sure Places API is enabled.';
+                    showToast('Google API Key test failed', 'error');
                 }
             } catch (error) {
                 statusDiv.className = 'api-status error';
@@ -542,6 +622,7 @@
                 whatsapp_logs: JSON.parse(localStorage.getItem('sss_whatsapp_logs') || '[]'),
                 templates: JSON.parse(localStorage.getItem('sss_whatsapp_templates') || '[]'),
                 settings: {
+                    geoapify_api_key: localStorage.getItem('geoapify_api_key') ? '[HIDDEN]' : null,
                     google_api_key: localStorage.getItem('google_api_key') ? '[HIDDEN]' : null,
                     companyName: localStorage.getItem('companyName'),
                     companyAddress: localStorage.getItem('companyAddress'),
