@@ -305,7 +305,7 @@ const geoapifyCategoryMap = {
     'supermarkets': 'commercial.supermarket'
 };
 
-const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY || '971978fb189342faa6dc8bf1070942b2';
+const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY || 'b0889da60f244f3ca834526299a66296';
 
 app.get('/api/search/geoapify', authenticateToken, async (req, res) => {
     const { query, location } = req.query;
