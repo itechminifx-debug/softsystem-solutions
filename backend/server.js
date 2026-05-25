@@ -284,8 +284,10 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
 });
 
 // ==================== GEOAPIFY BUSINESS SEARCH API ====================
-// Category mapping for Geoapify (no credit card required, 3000 requests/day)
-const geoapifyCategoryMap = {
+const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY ||'b0889da60f244f3ca834526299a66296';
+
+// Category mapping for Geoapify
+const categoryMap = {
     'schools': 'education.school',
     'school': 'education.school',
     'hotels': 'accommodation.hotel',
@@ -298,84 +300,82 @@ const geoapifyCategoryMap = {
     'bank': 'service.financial.bank',
     'pharmacies': 'healthcare.pharmacy',
     'pharmacy': 'healthcare.pharmacy',
+    'supermarkets': 'commercial.supermarket',
     'it companies': 'commercial.software_development',
     'it': 'commercial.software_development',
     'shopping malls': 'commercial.shopping_mall',
-    'mall': 'commercial.shopping_mall',
-    'supermarkets': 'commercial.supermarket'
+    'mall': 'commercial.shopping_mall'
 };
-
-const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY || 'b0889da60f244f3ca834526299a66296';
 
 app.get('/api/search/geoapify', authenticateToken, async (req, res) => {
     const { query, location } = req.query;
     
-    console.log(`Geoapify Search: ${query} in ${location}`);
+    console.log(`[Geoapify] Search request: query="${query}", location="${location}"`);
+    console.log(`[Geoapify] API Key configured: ${GEOAPIFY_API_KEY ? 'Yes' : 'No'}`);
     
     if (!query) {
         return res.status(400).json({ error: 'Search query required' });
     }
     
     if (!GEOAPIFY_API_KEY) {
-        console.log('Geoapify API key not configured, using local database');
-        return res.json({ success: false, results: [], message: 'API key not configured' });
+        console.log('[Geoapify] No API key configured - using local fallback');
+        return res.json({ success: false, results: [], message: 'No API key configured' });
     }
     
-    // Get the category from mapping, default to 'commercial'
-    const category = geoapifyCategoryMap[query.toLowerCase()] || 'commercial';
+    // Determine category based on query
+    let category = 'commercial';
+    const lowerQuery = query.toLowerCase();
     
-    // Build the Geoapify URL
-    let url = `https://api.geoapify.com/v2/places?categories=${category}&limit=20&apiKey=${GEOAPIFY_API_KEY}`;
+    if (lowerQuery.includes('school')) category = 'education.school';
+    else if (lowerQuery.includes('hotel')) category = 'accommodation.hotel';
+    else if (lowerQuery.includes('hospital')) category = 'healthcare.hospital';
+    else if (lowerQuery.includes('restaurant')) category = 'catering.restaurant';
+    else if (lowerQuery.includes('bank')) category = 'service.financial.bank';
+    else if (lowerQuery.includes('pharmacy')) category = 'healthcare.pharmacy';
+    else if (lowerQuery.includes('supermarket')) category = 'commercial.supermarket';
+    else if (lowerQuery.includes('mall')) category = 'commercial.shopping_mall';
+    else if (lowerQuery.includes('it') || lowerQuery.includes('software')) category = 'commercial.software_development';
     
-    // Add country filter for Ghana
-    url += '&filter=countrycode:gh';
+    // Ghana bounding box (west, south, east, north)
+    const rect = '-3.5,4.5,1.5,11.5';
     
-    console.log('Calling Geoapify API:', url);
+    // Build the URL
+    let url = `https://api.geoapify.com/v2/places?categories=${category}&filter=rect:${rect}&limit=25&apiKey=${GEOAPIFY_API_KEY}`;
+    
+    console.log(`[Geoapify] Calling URL: ${url}`);
     
     try {
         const response = await fetch(url);
         const data = await response.json();
         
+        console.log(`[Geoapify] Response type: ${data.type}, Features: ${data.features?.length || 0}`);
+        
         if (data.features && data.features.length > 0) {
-            const results = data.features.map(feature => ({
-                name: feature.properties.name || 'Unnamed Business',
-                address: feature.properties.formatted || feature.properties.address_line1 || '',
-                phone: feature.properties.phone || 'Not available',
-                website: feature.properties.website || '',
-                category: query,
-                rating: feature.properties.rating || 'N/A',
-                lat: feature.geometry.coordinates[1],
-                lng: feature.geometry.coordinates[0],
-                place_id: feature.properties.place_id
-            }));
+            const results = data.features.map(feature => {
+                const props = feature.properties;
+                return {
+                    name: props.name || 'Unnamed Business',
+                    address: props.formatted || `${props.street || ''} ${props.housenumber || ''}, ${props.city || ''}, ${props.country || 'Ghana'}`,
+                    phone: props.contact?.phone || props.phone || 'Not available',
+                    website: props.website || '',
+                    category: query,
+                    rating: props.rating || 'N/A',
+                    lat: feature.geometry.coordinates[1],
+                    lng: feature.geometry.coordinates[0],
+                    place_id: props.place_id,
+                    description: props.categories?.join(', ') || ''
+                };
+            });
+            
+            console.log(`[Geoapify] Successfully found ${results.length} results`);
             res.json({ success: true, results: results });
         } else {
-            console.log('Geoapify returned no results');
+            console.log('[Geoapify] No results found');
             res.json({ success: false, results: [], message: 'No results found' });
         }
     } catch (error) {
-        console.error('Geoapify API error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ==================== GEOAPIFY PLACE DETAILS ====================
-app.get('/api/search/geoapify-place', authenticateToken, async (req, res) => {
-    const { place_id } = req.query;
-    
-    if (!place_id) {
-        return res.status(400).json({ error: 'Place ID required' });
-    }
-    
-    const url = `https://api.geoapify.com/v2/place-details?id=${place_id}&apiKey=${GEOAPIFY_API_KEY}`;
-    
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json({ success: true, details: data });
-    } catch (error) {
-        console.error('Geoapify place details error:', error);
-        res.status(500).json({ error: error.message });
+        console.error('[Geoapify] Error:', error);
+        res.json({ success: false, results: [], message: error.message });
     }
 });
 
@@ -403,7 +403,7 @@ app.listen(PORT, () => {
 ║     Server running on http://localhost:${PORT}             ║
 ║                                                           ║
 ║     ✅ PostgreSQL Connected!                             ║
-║     ✅ Geoapify API Ready! (No credit card needed)      ║
+║     ✅ Geoapify API Ready!                               ║
 ║                                                           ║
 ║     🔐 Login: admin / admin123                           ║
 ║                                                           ║
