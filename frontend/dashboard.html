@@ -14,7 +14,7 @@
 
         body {
             background: #0f0f1a;
-            color: white;
+            color: #ffffff;
         }
 
         .navbar {
@@ -51,12 +51,10 @@
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
-            text-decoration: none;
         }
 
-        .nav-btn:hover {
+        .nav-btn:hover, .nav-btn.active {
             background: #f59e0b;
-            border-color: #f59e0b;
             color: #0f0f1a;
         }
 
@@ -69,62 +67,43 @@
             cursor: pointer;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            text-align: center;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        h1 {
-            color: #f59e0b;
-            margin-bottom: 20px;
-        }
-
-        .welcome-card {
-            background: #1a1a2e;
-            padding: 40px;
+        .store-badge {
+            background: rgba(245,158,11,0.2);
+            padding: 5px 15px;
             border-radius: 20px;
-            margin-top: 30px;
-            border: 1px solid rgba(245,158,11,0.2);
+            font-size: 12px;
         }
 
-        .info {
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .welcome-section {
+            margin-bottom: 30px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .welcome-subtitle {
             color: #a0a0c0;
-            margin: 20px 0;
-            line-height: 1.6;
-        }
-
-        .nav-buttons-main {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .main-btn {
-            background: #f59e0b;
-            color: #0f0f1a;
-            padding: 15px 20px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            text-decoration: none;
-            display: inline-block;
-            transition: transform 0.3s;
-            text-align: center;
-        }
-
-        .main-btn:hover {
-            transform: translateY(-3px);
+            margin-top: 5px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -135,6 +114,13 @@
             border-radius: 16px;
             text-align: center;
             border: 1px solid rgba(245,158,11,0.2);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: #f59e0b;
         }
 
         .stat-number {
@@ -149,71 +135,264 @@
             margin-top: 5px;
         }
 
+        .recent-section {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #f59e0b;
+        }
+
+        .view-all {
+            color: #f59e0b;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            background: rgba(245,158,11,0.1);
+            color: #f59e0b;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .status-new { background: #f59e0b; color: #0f0f1a; }
+        .status-contacted { background: #3b82f6; color: white; }
+        .status-converted { background: #10b981; color: white; }
+
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #f59e0b;
+            color: #0f0f1a;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+
         @media (max-width: 768px) {
             .navbar { flex-direction: column; text-align: center; }
-            .nav-buttons-main { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="logo">Soft System<span>Solutions</span></div>
+        <div class="user-info">
+            <span class="store-badge" id="userRole">Admin</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
         <div class="nav-buttons">
-            <button class="nav-btn" style="background:#f59e0b; color:#0f0f1a;">📊 Dashboard</button>
+            <button class="nav-btn active">📊 Dashboard</button>
             <button class="nav-btn" onclick="window.location.href='crm.html'">📞 CRM</button>
             <button class="nav-btn" onclick="window.location.href='search.html'">🔍 Business Search</button>
             <button class="nav-btn" onclick="window.location.href='proposals.html'">📄 Proposals</button>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
+            <button class="nav-btn" onclick="window.location.href='settings.html'">⚙️ Settings</button>
         </div>
     </nav>
 
     <div class="container">
-        <h1>Welcome to Soft System Solutions</h1>
-        
-        <!-- Stats Section -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Total Contacts</div></div>
-            <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Converted</div></div>
-            <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Proposals</div></div>
-            <div class="stat-card"><div class="stat-number">-</div><div class="stat-label">Accepted</div></div>
+        <div class="welcome-section">
+            <h1 class="welcome-title">Welcome back, <span id="userName">Admin</span>!</h1>
+            <p class="welcome-subtitle">Here's what's happening with your business today.</p>
         </div>
-        
-        <div class="welcome-card">
-            <p class="info">
-                ✅ You have successfully logged in!<br><br>
-                Your complete Business Intelligence & CRM System is ready.
-            </p>
-            
-            <div class="nav-buttons-main">
-                <button class="main-btn" onclick="window.location.href='crm.html'">📞 Go to CRM</button>
-                <button class="main-btn" onclick="window.location.href='search.html'">🔍 Business Search</button>
-                <button class="main-btn" onclick="window.location.href='proposals.html'">📄 Manage Proposals</button>
-<button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number">-</div>
+                <div class="stat-label">Total Contacts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">-</div>
+                <div class="stat-label">Converted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">-</div>
+                <div class="stat-label">Pending Follow-up</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">-</div>
+                <div class="stat-label">Proposals</div>
+            </div>
+        </div>
+
+        <div class="recent-section">
+            <div class="section-header">
+                <h3 class="section-title">📋 Recent Contacts</h3>
+                <a href="#" class="view-all" onclick="window.location.href='crm.html'">View All →</a>
+            </div>
+            <div class="table-container">
+                <table id="recentTable">
+                    <thead>
+                        <tr><th>Name</th><th>Company</th><th>Email</th><th>Status</th><th>Date</th></tr>
+                    </thead>
+                    <tbody id="recentTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding:40px;">Loading contacts...<\/td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="quick-actions">
+                <button class="action-btn" onclick="window.location.href='crm.html'">+ Add New Contact</button>
+                <button class="action-btn" onclick="window.location.href='search.html'">🔍 Find Businesses</button>
             </div>
         </div>
     </div>
 
+    <div id="toast" class="toast"></div>
+
     <script>
-        const token = localStorage.getItem('token');
+        const API_URL = '';
+        let token = localStorage.getItem('token');
+        
         if (!token) {
             window.location.href = 'index.html';
         }
+        
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            document.getElementById('userName').innerText = user?.username || 'Admin';
+        } catch(e) {}
 
-        function loadStats() {
-            const contacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
-            const proposals = JSON.parse(localStorage.getItem('sss_proposals') || '[]');
-            
-            const totalContacts = contacts.length;
-            const converted = contacts.filter(c => c.status === 'converted').length;
-            const totalProposals = proposals.length;
-            const accepted = proposals.filter(p => p.status === 'accepted').length;
-            
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card"><div class="stat-number">${totalContacts}</div><div class="stat-label">Total Contacts</div></div>
-                <div class="stat-card"><div class="stat-number">${converted}</div><div class="stat-label">Converted</div></div>
-                <div class="stat-card"><div class="stat-number">${totalProposals}</div><div class="stat-label">Proposals Sent</div></div>
-                <div class="stat-card"><div class="stat-number">${accepted}</div><div class="stat-label">Accepted</div></div>
-            `;
+        async function apiCall(endpoint) {
+            const response = await fetch(API_URL + endpoint, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return response.json();
+        }
+
+        async function loadDashboard() {
+            try {
+                // Load contacts from DATABASE
+                const contacts = await apiCall('/api/contacts');
+                
+                const totalContacts = contacts.length;
+                const converted = contacts.filter(c => c.status === 'converted').length;
+                const pending = contacts.filter(c => c.status === 'new' || c.status === 'contacted').length;
+                
+                // Update stats
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card" onclick="window.location.href='crm.html'">
+                        <div class="stat-number">${totalContacts}</div>
+                        <div class="stat-label">Total Contacts</div>
+                    </div>
+                    <div class="stat-card" onclick="window.location.href='crm.html?status=converted'">
+                        <div class="stat-number">${converted}</div>
+                        <div class="stat-label">Converted</div>
+                    </div>
+                    <div class="stat-card" onclick="window.location.href='crm.html?status=pending'">
+                        <div class="stat-number">${pending}</div>
+                        <div class="stat-label">Pending Follow-up</div>
+                    </div>
+                    <div class="stat-card" onclick="window.location.href='proposals.html'">
+                        <div class="stat-number" id="proposalsCount">-</div>
+                        <div class="stat-label">Proposals</div>
+                    </div>
+                `;
+                
+                // Load recent contacts (last 5)
+                const recentContacts = contacts.slice(-5).reverse();
+                const tbody = document.getElementById('recentTableBody');
+                
+                if (recentContacts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px;">No contacts yet. Click "Add New Contact" to get started.<\/td></tr>';
+                } else {
+                    tbody.innerHTML = recentContacts.map(contact => `
+                        <tr>
+                            <td><strong>${escapeHtml(contact.name)}</strong></td>
+                            <td>${escapeHtml(contact.company || '-')}</td>
+                            <td>${escapeHtml(contact.email || '-')}</td>
+                            <td><span class="status-badge status-${contact.status || 'new'}">${getStatusText(contact.status)}</span></td>
+                            <td>${formatDate(contact.created_at)}</span></td>
+                        </tr>
+                    `).join('');
+                }
+                
+                // Load proposals count
+                try {
+                    const proposals = await apiCall('/api/proposals');
+                    document.getElementById('proposalsCount').innerText = proposals.length || 0;
+                } catch(e) {
+                    document.getElementById('proposalsCount').innerText = '0';
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showToast('Error loading dashboard data', 'error');
+            }
+        }
+
+        function getStatusText(status) {
+            const map = { 'new':'🆕 New', 'contacted':'📞 Contacted', 'proposal':'📄 Proposal Sent', 'converted':'✅ Converted', 'lost':'❌ Lost' };
+            return map[status] || '🆕 New';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = type === 'error' ? '#ef4444' : '#10b981';
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
         }
 
         function logout() {
@@ -221,10 +400,19 @@
             window.location.href = 'index.html';
         }
 
-        loadStats();
-        
-        // Refresh stats every 5 seconds
-        setInterval(loadStats, 5000);
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        loadDashboard();
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboard, 30000);
     </script>
 </body>
 </html>
