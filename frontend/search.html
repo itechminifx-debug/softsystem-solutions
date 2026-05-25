@@ -219,7 +219,7 @@
             cursor: pointer;
         }
 
-        .google-maps-btn {
+        .maps-btn {
             background: #34a853;
             color: white;
             padding: 8px 16px;
@@ -312,8 +312,8 @@
     <div class="container">
         <!-- API Key Warning -->
         <div id="apiWarning" class="api-warning">
-            <p>⚠️ <strong>Google API Key Not Configured</strong></p>
-            <p>Please go to <a href="settings.html">Settings</a> to add your Google Places API key for real business search.</p>
+            <p>⚠️ <strong>Geoapify API Key Not Configured</strong></p>
+            <p>Please go to <a href="settings.html">Settings</a> to add your Geoapify API key for real business search.</p>
             <p>Without an API key, you will see sample business data only.</p>
         </div>
 
@@ -344,7 +344,7 @@
                 <span class="suggestion-chip" onclick="quickSearch('pharmacies')">💊 Pharmacies</span>
                 <span class="suggestion-chip" onclick="quickSearch('shopping malls')">🛍️ Shopping Malls</span>
             </div>
-            <p class="note">💡 Click a suggestion above or type your own search. Uses Google Places API for real business data.</p>
+            <p class="note">💡 Click a suggestion above or type your own search. Uses Geoapify API (free, no credit card required).</p>
         </div>
 
         <div class="results-section">
@@ -373,9 +373,30 @@
 
         const API_URL = '';
 
+        // Category mapping for Geoapify
+        const categoryMap = {
+            'schools': 'education.school',
+            'school': 'education.school',
+            'hotels': 'accommodation.hotel',
+            'hotel': 'accommodation.hotel',
+            'hospitals': 'healthcare.hospital',
+            'hospital': 'healthcare.hospital',
+            'restaurants': 'catering.restaurant',
+            'restaurant': 'catering.restaurant',
+            'banks': 'service.financial.bank',
+            'bank': 'service.financial.bank',
+            'pharmacies': 'healthcare.pharmacy',
+            'pharmacy': 'healthcare.pharmacy',
+            'it companies': 'commercial.software_development',
+            'it': 'commercial.software_development',
+            'shopping malls': 'commercial.shopping_mall',
+            'mall': 'commercial.shopping_mall',
+            'supermarkets': 'commercial.supermarket'
+        };
+
         // Check if API key exists in localStorage
         function checkApiKey() {
-            const apiKey = localStorage.getItem('google_api_key');
+            const apiKey = localStorage.getItem('geoapify_api_key') || localStorage.getItem('google_api_key');
             const warningDiv = document.getElementById('apiWarning');
             
             if (!apiKey) {
@@ -416,9 +437,9 @@
         };
 
         async function searchBusinesses() {
-            const query = document.getElementById('searchQuery').value.trim();
+            const query = document.getElementById('searchQuery').value.trim().toLowerCase();
             const location = document.getElementById('searchLocation').value;
-            const apiKey = localStorage.getItem('google_api_key');
+            let apiKey = localStorage.getItem('geoapify_api_key') || localStorage.getItem('google_api_key');
             
             if (!query) {
                 showToast('Please enter a search term', 'error');
@@ -432,25 +453,29 @@
                 </div>
             `;
             
-            // If API key exists, try Google Places API
+            // Get the Geoapify category
+            const geoapifyCategory = categoryMap[query] || 'commercial';
+            
+            // Try Geoapify API first
             if (apiKey) {
                 try {
-                    const response = await fetch(`${API_URL}/api/search/google-places?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`, {
+                    let url = `${API_URL}/api/search/geoapify?query=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`;
+                    const response = await fetch(url, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     const data = await response.json();
                     
                     if (data.success && data.results && data.results.length > 0) {
                         currentResults = data.results;
-                        displayGoogleResults(data.results);
+                        displayResults(data.results);
                         document.getElementById('resultsCount').innerHTML = `${data.results.length} businesses found`;
-                        showToast(`Found ${data.results.length} businesses from Google!`, 'success');
+                        showToast(`Found ${data.results.length} businesses!`, 'success');
                         return;
                     } else {
-                        console.log('Google API returned no results, using local database');
+                        console.log('Geoapify returned no results, using local database');
                     }
                 } catch (error) {
-                    console.error('Google API error:', error);
+                    console.error('Geoapify API error:', error);
                 }
             }
             
@@ -478,11 +503,11 @@
             }
             
             currentResults = results;
-            displayGoogleResults(results);
+            displayResults(results);
             document.getElementById('resultsCount').innerHTML = `${results.length} businesses found`;
         }
 
-        function displayGoogleResults(results) {
+        function displayResults(results) {
             const container = document.getElementById('searchResults');
             
             if (!results || results.length === 0) {
@@ -514,7 +539,7 @@
                     </div>
                     <div class="action-buttons">
                         <button class="import-btn" onclick='importToCRM(${JSON.stringify(biz).replace(/'/g, "\\'")})'>📥 Import to CRM</button>
-                        ${biz.lat && biz.lng ? `<button class="google-maps-btn" onclick='window.open("https://www.google.com/maps?q=${biz.lat},${biz.lng}", "_blank")'>🗺️ Google Maps</button>` : ''}
+                        ${biz.lat && biz.lng ? `<button class="maps-btn" onclick='window.open("https://www.google.com/maps?q=${biz.lat},${biz.lng}", "_blank")'>🗺️ View on Map</button>` : ''}
                     </div>
                 </div>
             `).join('');
