@@ -283,50 +283,98 @@ app.get('/api/stats', authenticateToken, async (req, res) => {
     }
 });
 
-// ==================== GOOGLE PLACES API PROXY ====================
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyDUQPjapUS2gmisamwtqQF5CbC6C-jUoDI';
+// ==================== GEOAPIFY BUSINESS SEARCH API ====================
+// Category mapping for Geoapify (no credit card required, 3000 requests/day)
+const geoapifyCategoryMap = {
+    'schools': 'education.school',
+    'school': 'education.school',
+    'hotels': 'accommodation.hotel',
+    'hotel': 'accommodation.hotel',
+    'hospitals': 'healthcare.hospital',
+    'hospital': 'healthcare.hospital',
+    'restaurants': 'catering.restaurant',
+    'restaurant': 'catering.restaurant',
+    'banks': 'service.financial.bank',
+    'bank': 'service.financial.bank',
+    'pharmacies': 'healthcare.pharmacy',
+    'pharmacy': 'healthcare.pharmacy',
+    'it companies': 'commercial.software_development',
+    'it': 'commercial.software_development',
+    'shopping malls': 'commercial.shopping_mall',
+    'mall': 'commercial.shopping_mall',
+    'supermarkets': 'commercial.supermarket'
+};
 
-app.get('/api/search/google-places', authenticateToken, async (req, res) => {
+const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY || '971978fb189342faa6dc8bf1070942b2';
+
+app.get('/api/search/geoapify', authenticateToken, async (req, res) => {
     const { query, location } = req.query;
     
-    console.log(`Google Places Search: ${query} in ${location}`);
+    console.log(`Geoapify Search: ${query} in ${location}`);
     
     if (!query) {
         return res.status(400).json({ error: 'Search query required' });
     }
     
-    let searchQuery = `${query} in ${location || 'Accra'} Ghana`;
+    if (!GEOAPIFY_API_KEY) {
+        console.log('Geoapify API key not configured, using local database');
+        return res.json({ success: false, results: [], message: 'API key not configured' });
+    }
+    
+    // Get the category from mapping, default to 'commercial'
+    const category = geoapifyCategoryMap[query.toLowerCase()] || 'commercial';
+    
+    // Build the Geoapify URL
+    let url = `https://api.geoapify.com/v2/places?categories=${category}&limit=20&apiKey=${GEOAPIFY_API_KEY}`;
+    
+    // Add country filter for Ghana
+    url += '&filter=countrycode:gh';
+    
+    console.log('Calling Geoapify API:', url);
     
     try {
-        const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(searchQuery)}&key=${GOOGLE_API_KEY}`;
-        console.log('Calling Google Places API:', url);
-        
         const response = await fetch(url);
         const data = await response.json();
         
-        console.log('Google Places API response status:', data.status);
-        
-        if (data.status === 'OK' && data.results) {
-            const results = data.results.map(place => ({
-                name: place.name,
-                address: place.formatted_address,
-                location: location || 'Ghana',
-                rating: place.rating || 'N/A',
-                total_ratings: place.user_ratings_total || 0,
-                phone: place.formatted_phone_number || 'Not available',
-                website: place.website || '',
-                place_id: place.place_id,
-                lat: place.geometry.location.lat,
-                lng: place.geometry.location.lng,
-                category: query
+        if (data.features && data.features.length > 0) {
+            const results = data.features.map(feature => ({
+                name: feature.properties.name || 'Unnamed Business',
+                address: feature.properties.formatted || feature.properties.address_line1 || '',
+                phone: feature.properties.phone || 'Not available',
+                website: feature.properties.website || '',
+                category: query,
+                rating: feature.properties.rating || 'N/A',
+                lat: feature.geometry.coordinates[1],
+                lng: feature.geometry.coordinates[0],
+                place_id: feature.properties.place_id
             }));
             res.json({ success: true, results: results });
         } else {
-            console.log('Google Places API returned:', data.status, data.error_message);
-            res.json({ success: false, results: [], message: data.status, error: data.error_message });
+            console.log('Geoapify returned no results');
+            res.json({ success: false, results: [], message: 'No results found' });
         }
     } catch (error) {
-        console.error('Google Places API error:', error);
+        console.error('Geoapify API error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ==================== GEOAPIFY PLACE DETAILS ====================
+app.get('/api/search/geoapify-place', authenticateToken, async (req, res) => {
+    const { place_id } = req.query;
+    
+    if (!place_id) {
+        return res.status(400).json({ error: 'Place ID required' });
+    }
+    
+    const url = `https://api.geoapify.com/v2/place-details?id=${place_id}&apiKey=${GEOAPIFY_API_KEY}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        res.json({ success: true, details: data });
+    } catch (error) {
+        console.error('Geoapify place details error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -355,7 +403,7 @@ app.listen(PORT, () => {
 ║     Server running on http://localhost:${PORT}             ║
 ║                                                           ║
 ║     ✅ PostgreSQL Connected!                             ║
-║     ✅ Google Places API Ready!                          ║
+║     ✅ Geoapify API Ready! (No credit card needed)      ║
 ║                                                           ║
 ║     🔐 Login: admin / admin123                           ║
 ║                                                           ║
