@@ -393,6 +393,60 @@ app.get('/:page.html', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend', `${req.params.page}.html`));
 });
 
+// ==================== TEMPLATES API ====================
+app.get('/api/templates', authenticateToken, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM templates WHERE user_id = $1 ORDER BY created_at DESC', [req.user.id]);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/templates', authenticateToken, async (req, res) => {
+    const { title, category, content, tags } = req.body;
+    
+    if (!title || !content) {
+        return res.status(400).json({ error: 'Title and content are required' });
+    }
+    
+    try {
+        const result = await pool.query(
+            `INSERT INTO templates (user_id, title, category, content, tags)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING *`,
+            [req.user.id, title, category, content, tags]
+        );
+        res.json({ success: true, template: result.rows[0] });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.put('/api/templates/:id', authenticateToken, async (req, res) => {
+    const { title, category, content, tags } = req.body;
+    
+    try {
+        const result = await pool.query(
+            `UPDATE templates SET title = $1, category = $2, content = $3, tags = $4, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $5 AND user_id = $6 RETURNING *`,
+            [title, category, content, tags, req.params.id, req.user.id]
+        );
+        res.json({ success: true, template: result.rows[0] });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/templates/:id', authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM templates WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== START SERVER ====================
 app.listen(PORT, () => {
     console.log(`
