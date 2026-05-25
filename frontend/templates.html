@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal Templates | Soft System Solutions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: #0f0f1a;
+            color: #ffffff;
+        }
+
+        .navbar {
+            background: #1a1a2e;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 1px solid rgba(245,158,11,0.3);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #f59e0b;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid rgba(245,158,11,0.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: #f59e0b;
+            color: #0f0f1a;
+        }
+
+        .logout-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(245,158,11,0.2);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #f59e0b;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #a0a0c0;
+            margin-top: 5px;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn-primary {
+            background: #f59e0b;
+            color: #0f0f1a;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            padding: 12px 15px;
+            background: #1a1a2e;
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px;
+            color: white;
+            width: 250px;
+        }
+
+        .search-box select {
+            padding: 12px 15px;
+            background: #1a1a2e;
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px;
+            color: white;
+        }
+
+        /* Templates Grid */
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 20px;
+        }
+
+        .template-card {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(245,158,11,0.2);
+            transition: all 0.3s;
+        }
+
+        .template-card:hover {
+            border-color: #f59e0b;
+            transform: translateY(-3px);
+        }
+
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .template-category {
+            background: rgba(245,158,11,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #f59e0b;
+        }
+
+        .template-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+
+        .template-preview {
+            font-size: 13px;
+            color: #a0a0c0;
+            line-height: 1.5;
+            margin: 15px 0;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .use-btn {
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .edit-btn {
+            background: #f59e0b;
+            color: #0f0f1a;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #f59e0b;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #a0a0c0;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: #0f0f1a;
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #a0a0c0;
+            grid-column: 1/-1;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; text-align: center; }
+            .action-bar { flex-direction: column; align-items: stretch; }
+            .search-box { flex-direction: column; }
+            .search-box input { width: 100%; }
+            .templates-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Soft System<span>Solutions</span></div>
+        <div class="nav-buttons">
+            <button class="nav-btn" onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
+            <button class="nav-btn" onclick="window.location.href='crm.html'">📞 CRM</button>
+            <button class="nav-btn" onclick="window.location.href='search.html'">🔍 Business Search</button>
+            <button class="nav-btn" onclick="window.location.href='proposals.html'">📄 Proposals</button>
+            <button class="nav-btn active">📝 Templates</button>
+            <button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
+            <button class="nav-btn" onclick="window.location.href='settings.html'">⚙️ Settings</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="btn-primary" onclick="openAddTemplateModal()">+ Add New Template</button>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search templates..." onkeyup="loadTemplates()">
+                <select id="categoryFilter" onchange="loadTemplates()">
+                    <option value="all">All Categories</option>
+                    <option value="School">🏫 School</option>
+                    <option value="Business">💼 Business</option>
+                    <option value="IT">💻 IT / Software</option>
+                    <option value="Healthcare">🏥 Healthcare</option>
+                    <option value="Real Estate">🏠 Real Estate</option>
+                    <option value="Marketing">📢 Marketing</option>
+                    <option value="Other">📌 Other</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Templates Grid -->
+        <div class="templates-grid" id="templatesGrid">
+            <div class="empty-state">Loading templates...</div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Template Modal -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add New Template</h3>
+            <input type="hidden" id="templateId">
+            <div class="form-group">
+                <label>Template Title *</label>
+                <input type="text" id="templateTitle" placeholder="e.g., School Management System Proposal">
+            </div>
+            <div class="form-group">
+                <label>Category *</label>
+                <select id="templateCategory">
+                    <option value="School">🏫 School</option>
+                    <option value="Business">💼 Business</option>
+                    <option value="IT">💻 IT / Software</option>
+                    <option value="Healthcare">🏥 Healthcare</option>
+                    <option value="Real Estate">🏠 Real Estate</option>
+                    <option value="Marketing">📢 Marketing</option>
+                    <option value="Other">📌 Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Proposal Content *</label>
+                <textarea id="templateContent" rows="12" placeholder="Paste your proposal template here..."></textarea>
+                <small style="color:#64748b;">You can use placeholders like {client_name}, {company_name}, {amount}, etc.</small>
+            </div>
+            <div class="form-group">
+                <label>Tags (comma separated)</label>
+                <input type="text" id="templateTags" placeholder="e.g., school, software, crm">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="saveTemplate()">Save Template</button>
+                <button class="btn-secondary" onclick="closeModal('templateModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Use Template Modal -->
+    <div id="useTemplateModal" class="modal">
+        <div class="modal-content">
+            <h3>Use Template</h3>
+            <div class="form-group">
+                <label>Replace Placeholders</label>
+                <div id="placeholderFields"></div>
+            </div>
+            <div class="form-group">
+                <label>Preview</label>
+                <textarea id="previewContent" rows="8" readonly style="background:#0f0f1a;"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="copyToProposal()">📋 Copy to Proposal</button>
+                <button class="btn-secondary" onclick="closeModal('useTemplateModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const API_URL = '';
+        let token = localStorage.getItem('token');
+        let templates = [];
+        let currentTemplate = null;
+        
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+
+        async function apiCall(endpoint, options = {}) {
+            const response = await fetch(API_URL + endpoint, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers
+                }
+            });
+            return response.json();
+        }
+
+        async function loadTemplates() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            try {
+                templates = await apiCall('/api/templates');
+                
+                let filtered = templates;
+                if (search) {
+                    filtered = filtered.filter(t => 
+                        t.title.toLowerCase().includes(search) || 
+                        (t.tags && t.tags.toLowerCase().includes(search))
+                    );
+                }
+                if (categoryFilter !== 'all') {
+                    filtered = filtered.filter(t => t.category === categoryFilter);
+                }
+                
+                renderTemplates(filtered);
+                updateStats();
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                document.getElementById('templatesGrid').innerHTML = '<div class="empty-state">Error loading templates</div>';
+            }
+        }
+
+        function renderTemplates(templatesList) {
+            const grid = document.getElementById('templatesGrid');
+            
+            if (templatesList.length === 0) {
+                grid.innerHTML = '<div class="empty-state">📝 No templates found. Click "+ Add New Template" to create one.</div>';
+                return;
+            }
+            
+            grid.innerHTML = templatesList.map(template => `
+                <div class="template-card">
+                    <div class="template-header">
+                        <span class="template-category">${getCategoryIcon(template.category)} ${template.category}</span>
+                    </div>
+                    <div class="template-title">${escapeHtml(template.title)}</div>
+                    <div class="template-preview">${escapeHtml(template.content.substring(0, 150))}${template.content.length > 150 ? '...' : ''}</div>
+                    ${template.tags ? `<div style="font-size: 11px; color: #64748b; margin-top: 10px;">🏷️ ${escapeHtml(template.tags)}</div>` : ''}
+                    <div class="action-buttons">
+                        <button class="use-btn" onclick="useTemplate(${template.id})">📋 Use Template</button>
+                        <button class="edit-btn" onclick="editTemplate(${template.id})">✏️ Edit</button>
+                        <button class="delete-btn" onclick="deleteTemplate(${template.id})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'School': '🏫',
+                'Business': '💼',
+                'IT': '💻',
+                'Healthcare': '🏥',
+                'Real Estate': '🏠',
+                'Marketing': '📢',
+                'Other': '📌'
+            };
+            return icons[category] || '📄';
+        }
+
+        function updateStats() {
+            const total = templates.length;
+            const categories = new Set(templates.map(t => t.category)).size;
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total Templates</div></div>
+                <div class="stat-card"><div class="stat-number">${categories}</div><div class="stat-label">Categories</div></div>
+                <div class="stat-card"><div class="stat-number">📝</div><div class="stat-label">Ready to Use</div></div>
+            `;
+        }
+
+        function openAddTemplateModal() {
+            document.getElementById('modalTitle').innerText = 'Add New Template';
+            document.getElementById('templateId').value = '';
+            document.getElementById('templateTitle').value = '';
+            document.getElementById('templateCategory').value = 'School';
+            document.getElementById('templateContent').value = '';
+            document.getElementById('templateTags').value = '';
+            document.getElementById('templateModal').style.display = 'flex';
+        }
+
+        async function editTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+            
+            document.getElementById('modalTitle').innerText = 'Edit Template';
+            document.getElementById('templateId').value = template.id;
+            document.getElementById('templateTitle').value = template.title;
+            document.getElementById('templateCategory').value = template.category;
+            document.getElementById('templateContent').value = template.content;
+            document.getElementById('templateTags').value = template.tags || '';
+            document.getElementById('templateModal').style.display = 'flex';
+        }
+
+        async function saveTemplate() {
+            const id = document.getElementById('templateId').value;
+            const templateData = {
+                title: document.getElementById('templateTitle').value,
+                category: document.getElementById('templateCategory').value,
+                content: document.getElementById('templateContent').value,
+                tags: document.getElementById('templateTags').value
+            };
+            
+            if (!templateData.title || !templateData.content) {
+                showToast('Title and content are required', 'error');
+                return;
+            }
+            
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(API_URL + `/api/templates/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(templateData)
+                    });
+                } else {
+                    response = await fetch(API_URL + '/api/templates', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(templateData)
+                    });
+                }
+                
+                if (response.ok) {
+                    closeModal('templateModal');
+                    await loadTemplates();
+                    showToast(id ? 'Template updated!' : 'Template added!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Error saving template', 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+            
+            if (confirm(`Delete "${template.title}"?`)) {
+                try {
+                    await fetch(API_URL + `/api/templates/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    await loadTemplates();
+                    showToast('Template deleted!', 'success');
+                } catch (error) {
+                    showToast('Error deleting template', 'error');
+                }
+            }
+        }
+
+        function useTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+            
+            currentTemplate = template;
+            
+            // Extract placeholders like {client_name}
+            const placeholders = template.content.match(/\{([^}]+)\}/g) || [];
+            const uniquePlaceholders = [...new Set(placeholders)];
+            
+            if (uniquePlaceholders.length > 0) {
+                let fieldsHtml = '';
+                uniquePlaceholders.forEach(placeholder => {
+                    const fieldName = placeholder.replace(/[{}]/g, '');
+                    fieldsHtml += `
+                        <div class="form-group">
+                            <label>${fieldName.replace(/_/g, ' ').toUpperCase()}</label>
+                            <input type="text" id="field_${fieldName}" placeholder="Enter ${fieldName.replace(/_/g, ' ')}">
+                        </div>
+                    `;
+                });
+                document.getElementById('placeholderFields').innerHTML = fieldsHtml;
+                document.getElementById('previewContent').value = template.content;
+            } else {
+                document.getElementById('placeholderFields').innerHTML = '<p style="color:#64748b;">No placeholders found. You can use the template as is.</p>';
+                document.getElementById('previewContent').value = template.content;
+            }
+            
+            // Add live preview
+            const inputs = document.querySelectorAll('#placeholderFields input');
+            inputs.forEach(input => {
+                input.addEventListener('input', updatePreview);
+            });
+            
+            document.getElementById('useTemplateModal').style.display = 'flex';
+        }
+
+        function updatePreview() {
+            if (!currentTemplate) return;
+            let content = currentTemplate.content;
+            const placeholders = content.match(/\{([^}]+)\}/g) || [];
+            const uniquePlaceholders = [...new Set(placeholders)];
+            
+            uniquePlaceholders.forEach(placeholder => {
+                const fieldName = placeholder.replace(/[{}]/g, '');
+                const input = document.getElementById(`field_${fieldName}`);
+                if (input && input.value) {
+                    content = content.replace(new RegExp(`\\{${fieldName}\\}`, 'g'), input.value);
+                }
+            });
+            
+            document.getElementById('previewContent').value = content;
+        }
+
+        function copyToProposal() {
+            let content = currentTemplate.content;
+            const placeholders = content.match(/\{([^}]+)\}/g) || [];
+            const uniquePlaceholders = [...new Set(placeholders)];
+            
+            uniquePlaceholders.forEach(placeholder => {
+                const fieldName = placeholder.replace(/[{}]/g, '');
+                const input = document.getElementById(`field_${fieldName}`);
+                if (input && input.value) {
+                    content = content.replace(new RegExp(`\\{${fieldName}\\}`, 'g'), input.value);
+                }
+            });
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(content).then(() => {
+                showToast('Template copied to clipboard! You can now paste it in the Proposals page.', 'success');
+                closeModal('useTemplateModal');
+            }).catch(() => {
+                showToast('Failed to copy. Please select manually.', 'error');
+            });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = type === 'error' ? '#ef4444' : '#10b981';
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Initialize
+        loadTemplates();
+    </script>
+</body>
+</html>
