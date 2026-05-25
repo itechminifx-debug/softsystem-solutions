@@ -26,9 +26,6 @@
             flex-wrap: wrap;
             gap: 15px;
             border-bottom: 1px solid rgba(245,158,11,0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
         .logo {
@@ -56,9 +53,8 @@
             transition: all 0.3s;
         }
 
-        .nav-btn:hover {
+        .nav-btn:hover, .nav-btn.active {
             background: #f59e0b;
-            border-color: #f59e0b;
             color: #0f0f1a;
         }
 
@@ -305,12 +301,12 @@
         <div class="logo">Soft System<span>Solutions</span></div>
         <div class="nav-buttons">
             <button class="nav-btn" onclick="window.location.href='dashboard.html'">📊 Dashboard</button>
-            <button class="nav-btn" style="background:#f59e0b; color:#0f0f1a;">📞 CRM</button>
+            <button class="nav-btn active">📞 CRM</button>
             <button class="nav-btn" onclick="window.location.href='search.html'">🔍 Business Search</button>
             <button class="nav-btn" onclick="window.location.href='proposals.html'">📄 Proposals</button>
-<button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
+            <button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
+            <button class="nav-btn" onclick="window.location.href='settings.html'">⚙️ Settings</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
-
         </div>
     </nav>
 
@@ -350,12 +346,13 @@
                     </tr>
                 </thead>
                 <tbody id="contactsTableBody">
-                    <tr><td colspan="8" class="empty-state">Loading contacts...</td></tr>
+                    <tr><td colspan="8" class="empty-state">Loading contacts...<\/td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
+    <!-- Add/Edit Contact Modal -->
     <div id="contactModal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle">Add New Contact</h3>
@@ -364,73 +361,59 @@
             <div class="form-group"><label>Company Name</label><input type="text" id="contactCompany" placeholder="e.g., ABC School"></div>
             <div class="form-group"><label>Email</label><input type="email" id="contactEmail" placeholder="email@example.com"></div>
             <div class="form-group"><label>Phone Number</label><input type="text" id="contactPhone" placeholder="+233 XX XXX XXXX"></div>
-            <div class="form-group">
-                <label>Category</label>
-                <select id="contactCategory">
-                    <option value="">Select Category</option>
-                    <option value="School">🏫 School</option>
-                    <option value="Hospital">🏥 Hospital</option>
-                    <option value="Hotel">🏨 Hotel</option>
-                    <option value="Restaurant">🍽️ Restaurant</option>
-                    <option value="Business">💼 Business</option>
-                    <option value="Other">📌 Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Status</label>
-                <select id="contactStatus">
-                    <option value="new">🆕 New</option>
-                    <option value="contacted">📞 Contacted</option>
-                    <option value="proposal">📄 Proposal Sent</option>
-                    <option value="converted">✅ Converted</option>
-                    <option value="lost">❌ Lost</option>
-                </select>
-            </div>
+            <div class="form-group"><label>Category</label><select id="contactCategory"><option value="">Select Category</option><option value="School">🏫 School</option><option value="Hospital">🏥 Hospital</option><option value="Hotel">🏨 Hotel</option><option value="Restaurant">🍽️ Restaurant</option><option value="Business">💼 Business</option><option value="Other">📌 Other</option></select></div>
+            <div class="form-group"><label>Status</label><select id="contactStatus"><option value="new">🆕 New</option><option value="contacted">📞 Contacted</option><option value="proposal">📄 Proposal Sent</option><option value="converted">✅ Converted</option><option value="lost">❌ Lost</option></select></div>
             <div class="form-group"><label>Address</label><textarea id="contactAddress" rows="2"></textarea></div>
             <div class="form-group"><label>Notes</label><textarea id="contactNotes" rows="3"></textarea></div>
-            <div class="modal-buttons">
-                <button class="btn-primary" onclick="saveContact()">Save Contact</button>
-                <button class="btn-secondary" onclick="closeModal('contactModal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="viewModal" class="modal">
-        <div class="modal-content">
-            <h3>Contact Details</h3>
-            <div id="viewDetails"></div>
-            <div class="modal-buttons">
-                <button class="btn-secondary" onclick="closeModal('viewModal')">Close</button>
-            </div>
+            <div class="modal-buttons"><button class="btn-primary" onclick="saveContact()">Save Contact</button><button class="btn-secondary" onclick="closeModal('contactModal')">Cancel</button></div>
         </div>
     </div>
 
     <div id="toast" class="toast"></div>
 
     <script>
-        let contacts = [];
+        const API_URL = '';
         let token = localStorage.getItem('token');
+        let contacts = [];
         
         if (!token) window.location.href = 'index.html';
+
+        async function apiCall(endpoint, options = {}) {
+            const response = await fetch(API_URL + endpoint, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers
+                }
+            });
+            return response.json();
+        }
 
         async function loadContacts() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value;
             
-            contacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
-            
-            let filtered = contacts;
-            if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search) || (c.company && c.company.toLowerCase().includes(search)));
-            if (statusFilter !== 'all') filtered = filtered.filter(c => c.status === statusFilter);
-            
-            renderContactsTable(filtered);
-            updateStats();
+            try {
+                // Load from DATABASE, not localStorage
+                contacts = await apiCall('/api/contacts');
+                
+                let filtered = contacts;
+                if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search) || (c.company && c.company.toLowerCase().includes(search)));
+                if (statusFilter !== 'all') filtered = filtered.filter(c => c.status === statusFilter);
+                
+                renderContactsTable(filtered);
+                updateStats(filtered);
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+                document.getElementById('contactsTableBody').innerHTML = '<tr><td colspan="8" class="empty-state">Error loading contacts. Please make sure server is running.<\/td></tr>';
+            }
         }
 
         function renderContactsTable(contactsList) {
             const tbody = document.getElementById('contactsTableBody');
             if (contactsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No contacts found. Click "+ Add New Contact" to get started.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No contacts found. Click "+ Add New Contact" to get started.络<\/td></tr>';
                 return;
             }
             
@@ -442,31 +425,29 @@
                     <td>${escapeHtml(contact.phone || '-')}</td>
                     <td>${escapeHtml(contact.category || '-')}</td>
                     <td><span class="status status-${contact.status || 'new'}">${getStatusText(contact.status)}</span></td>
-                    <td>${formatDate(contact.createdAt)}</td>
+                    <td>${formatDate(contact.created_at)}</span></td>
                     <td class="action-buttons">
-                        <button class="icon-btn" onclick="viewContact(${contact.id})">👁️ View</button>
                         <button class="icon-btn" onclick="editContact(${contact.id})">✏️ Edit</button>
-                        <button class="icon-btn" onclick="sendProposalToContact(${contact.id})">📄 Proposal</button>
-                        <button class="icon-btn" onclick="deleteContact(${contact.id})" style="border-color:#ef4444;">🗑️ Delete</button>
-                    </td>
+                        <button class="icon-btn" onclick="deleteContact(${contact.id})">🗑️ Delete</button>
+                    </span></td>
                 </tr>
             `).join('');
-        }
-
-        function updateStats() {
-            const total = contacts.length;
-            const converted = contacts.filter(c => c.status === 'converted').length;
-            const pending = contacts.filter(c => c.status === 'new' || c.status === 'contacted').length;
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total Contacts</div></div>
-                <div class="stat-card"><div class="stat-number">${converted}</div><div class="stat-label">Converted</div></div>
-                <div class="stat-card"><div class="stat-number">${pending}</div><div class="stat-label">Pending</div></div>
-            `;
         }
 
         function getStatusText(status) {
             const map = { 'new':'🆕 New', 'contacted':'📞 Contacted', 'proposal':'📄 Proposal Sent', 'converted':'✅ Converted', 'lost':'❌ Lost' };
             return map[status] || '🆕 New';
+        }
+
+        function updateStats(contactsList) {
+            const total = contactsList.length;
+            const converted = contactsList.filter(c => c.status === 'converted').length;
+            const pending = contactsList.filter(c => c.status === 'new' || c.status === 'contacted').length;
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total Contacts</div></div>
+                <div class="stat-card"><div class="stat-number">${converted}</div><div class="stat-label">Converted</div></div>
+                <div class="stat-card"><div class="stat-number">${pending}</div><div class="stat-label">Pending</div></div>
+            `;
         }
 
         function openAddContactModal() {
@@ -483,7 +464,7 @@
             document.getElementById('contactModal').style.display = 'flex';
         }
 
-        function editContact(id) {
+        async function editContact(id) {
             const contact = contacts.find(c => c.id === id);
             if (!contact) return;
             document.getElementById('modalTitle').innerText = 'Edit Contact';
@@ -499,69 +480,68 @@
             document.getElementById('contactModal').style.display = 'flex';
         }
 
-        function saveContact() {
+        async function saveContact() {
             const id = document.getElementById('contactId').value;
             const contactData = {
                 name: document.getElementById('contactName').value,
                 company: document.getElementById('contactCompany').value,
                 email: document.getElementById('contactEmail').value,
                 phone: document.getElementById('contactPhone').value,
+                address: document.getElementById('contactAddress').value,
                 category: document.getElementById('contactCategory').value,
                 status: document.getElementById('contactStatus').value,
-                address: document.getElementById('contactAddress').value,
                 notes: document.getElementById('contactNotes').value
             };
             
             if (!contactData.name) { showToast('Name is required', 'error'); return; }
             
-            let storedContacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
-            
-            if (id) {
-                const index = storedContacts.findIndex(c => c.id == id);
-                if (index !== -1) storedContacts[index] = { ...storedContacts[index], ...contactData, updatedAt: new Date().toISOString() };
-            } else {
-                const newId = storedContacts.length > 0 ? Math.max(...storedContacts.map(c => c.id)) + 1 : 1;
-                storedContacts.push({ id: newId, ...contactData, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
-            }
-            
-            localStorage.setItem('sss_contacts', JSON.stringify(storedContacts));
-            closeModal('contactModal');
-            loadContacts();
-            showToast(id ? 'Contact updated!' : 'Contact added!', 'success');
-        }
-
-        function viewContact(id) {
-            const contact = contacts.find(c => c.id === id);
-            if (!contact) return;
-            document.getElementById('viewDetails').innerHTML = `
-                <div style="margin-bottom:15px"><strong>📛 Name:</strong> ${escapeHtml(contact.name)}<br><strong>🏢 Company:</strong> ${escapeHtml(contact.company || '-')}<br><strong>📧 Email:</strong> ${escapeHtml(contact.email || '-')}<br><strong>📞 Phone:</strong> ${escapeHtml(contact.phone || '-')}</div>
-                <div style="margin-bottom:15px"><strong>📂 Category:</strong> ${escapeHtml(contact.category || '-')}<br><strong>📌 Status:</strong> <span class="status status-${contact.status}">${getStatusText(contact.status)}</span><br><strong>📍 Address:</strong> ${escapeHtml(contact.address || '-')}</div>
-                <div><strong>📝 Notes:</strong><br><p style="margin-top:5px; color:#a0a0c0;">${escapeHtml(contact.notes || 'No notes.')}</p></div>
-            `;
-            document.getElementById('viewModal').style.display = 'flex';
-        }
-
-        function sendProposalToContact(contactId) {
-            const contact = contacts.find(c => c.id === contactId);
-            if (contact) {
-                localStorage.setItem('selected_contact_for_proposal', JSON.stringify(contact));
-                window.location.href = 'proposals.html?action=new&contact=' + contactId;
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(API_URL + `/api/contacts/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(contactData)
+                    });
+                } else {
+                    response = await fetch(API_URL + '/api/contacts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(contactData)
+                    });
+                }
+                
+                if (response.ok) {
+                    closeModal('contactModal');
+                    await loadContacts();
+                    showToast(id ? 'Contact updated!' : 'Contact added!', 'success');
+                } else {
+                    const error = await response.json();
+                    showToast(error.error || 'Error saving contact', 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
             }
         }
 
-        function deleteContact(id) {
+        async function deleteContact(id) {
             if (confirm('Delete this contact?')) {
-                let storedContacts = JSON.parse(localStorage.getItem('sss_contacts') || '[]');
-                storedContacts = storedContacts.filter(c => c.id !== id);
-                localStorage.setItem('sss_contacts', JSON.stringify(storedContacts));
-                loadContacts();
-                showToast('Contact deleted!', 'success');
+                try {
+                    await fetch(API_URL + `/api/contacts/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    await loadContacts();
+                    showToast('Contact deleted!', 'success');
+                } catch (error) {
+                    showToast('Error deleting contact', 'error');
+                }
             }
         }
 
         function exportContacts() {
             if (contacts.length === 0) { showToast('No contacts to export', 'error'); return; }
-            const csv = [['Name','Company','Email','Phone','Category','Status','Address','Notes','Created Date'], ...contacts.map(c => [c.name, c.company || '', c.email || '', c.phone || '', c.category || '', c.status || 'new', c.address || '', c.notes || '', formatDate(c.createdAt)])].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const csv = [['Name','Company','Email','Phone','Category','Status','Address','Notes','Created Date'], ...contacts.map(c => [c.name, c.company || '', c.email || '', c.phone || '', c.category || '', c.status || 'new', c.address || '', c.notes || '', formatDate(c.created_at)])].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
