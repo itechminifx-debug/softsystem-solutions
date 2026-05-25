@@ -128,6 +128,20 @@
             cursor: pointer;
         }
 
+        .btn-template {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-template:hover {
+            background: #7c3aed;
+        }
+
         .search-box {
             display: flex;
             gap: 10px;
@@ -279,6 +293,7 @@
             <button class="nav-btn" onclick="window.location.href='crm.html'">📞 CRM</button>
             <button class="nav-btn" onclick="window.location.href='search.html'">🔍 Business Search</button>
             <button class="nav-btn active">📄 Proposals</button>
+            <button class="nav-btn" onclick="window.location.href='templates.html'">📝 Templates</button>
             <button class="nav-btn" onclick="window.location.href='whatsapp.html'">💬 WhatsApp</button>
             <button class="nav-btn" onclick="window.location.href='settings.html'">⚙️ Settings</button>
             <button class="logout-btn" onclick="logout()">Logout</button>
@@ -289,7 +304,10 @@
         <div class="stats-grid" id="statsGrid"></div>
 
         <div class="action-bar">
-            <div><button class="btn-primary" onclick="openAddProposalModal()">+ New Proposal</button></div>
+            <div>
+                <button class="btn-primary" onclick="openAddProposalModal()">+ New Proposal</button>
+                <button class="btn-template" onclick="window.location.href='templates.html'">📝 Browse Templates</button>
+            </div>
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Search by contact or title..." onkeyup="loadProposals()">
                 <select id="statusFilter" onchange="loadProposals()">
@@ -306,7 +324,14 @@
         <div class="table-container">
             <table>
                 <thead>
-                    <tr><th>Contact</th><th>Title</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                    <tr>
+                        <th>Contact</th>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
                 </thead>
                 <tbody id="proposalsTableBody">
                     <tr><td colspan="6" class="empty-state">Loading proposals...<\/td></tr>
@@ -318,14 +343,40 @@
     <!-- Proposal Modal -->
     <div id="proposalModal" class="modal">
         <div class="modal-content">
-            <h3>New Proposal</h3>
+            <h3 id="proposalModalTitle">New Proposal</h3>
             <input type="hidden" id="proposalId">
-            <div class="form-group"><label>Select Contact *</label><select id="proposalContactId"></select></div>
-            <div class="form-group"><label>Title *</label><input type="text" id="proposalTitle"></div>
-            <div class="form-group"><label>Description</label><textarea id="proposalDescription" rows="4"></textarea></div>
-            <div class="form-group"><label>Amount (GHS)</label><input type="number" id="proposalAmount"></div>
-            <div class="form-group"><label>Status</label><select id="proposalStatus"><option value="draft">📝 Draft</option><option value="sent">📤 Sent</option><option value="viewed">👁️ Viewed</option><option value="accepted">✅ Accepted</option><option value="rejected">❌ Rejected</option></select></div>
-            <div class="modal-buttons"><button class="btn-primary" onclick="saveProposal()">Save</button><button class="btn-secondary" onclick="closeModal('proposalModal')">Cancel</button></div>
+            <div class="form-group">
+                <label>Select Contact *</label>
+                <select id="proposalContactId"></select>
+            </div>
+            <div class="form-group">
+                <label>Title *</label>
+                <input type="text" id="proposalTitle">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="proposalDescription" rows="4"></textarea>
+                <small style="color:#64748b;">💡 Tip: Click "Load from Template" to use a saved template</small>
+            </div>
+            <div class="form-group">
+                <label>Amount (GHS)</label>
+                <input type="number" id="proposalAmount">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="proposalStatus">
+                    <option value="draft">📝 Draft</option>
+                    <option value="sent">📤 Sent</option>
+                    <option value="viewed">👁️ Viewed</option>
+                    <option value="accepted">✅ Accepted</option>
+                    <option value="rejected">❌ Rejected</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-secondary" onclick="loadTemplateIntoProposal()">📋 Load from Template</button>
+                <button class="btn-primary" onclick="saveProposal()">Save Proposal</button>
+                <button class="btn-secondary" onclick="closeModal('proposalModal')">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -334,9 +385,45 @@
         <div class="modal-content">
             <h3>Update Status</h3>
             <input type="hidden" id="statusProposalId">
-            <div class="form-group"><label>Status</label><select id="updateStatus"><option value="draft">📝 Draft</option><option value="sent">📤 Sent</option><option value="viewed">👁️ Viewed</option><option value="accepted">✅ Accepted</option><option value="rejected">❌ Rejected</option></select></div>
-            <div class="form-group"><label>Response Notes</label><textarea id="responseNotes" rows="3"></textarea></div>
-            <div class="modal-buttons"><button class="btn-primary" onclick="updateProposalStatus()">Update</button><button class="btn-secondary" onclick="closeModal('statusModal')">Cancel</button></div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="updateStatus">
+                    <option value="draft">📝 Draft</option>
+                    <option value="sent">📤 Sent</option>
+                    <option value="viewed">👁️ Viewed</option>
+                    <option value="accepted">✅ Accepted</option>
+                    <option value="rejected">❌ Rejected</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Response Notes</label>
+                <textarea id="responseNotes" rows="3"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="updateProposalStatus()">Update</button>
+                <button class="btn-secondary" onclick="closeModal('statusModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Template Modal -->
+    <div id="loadTemplateModal" class="modal">
+        <div class="modal-content">
+            <h3>📝 Load Template</h3>
+            <div class="form-group">
+                <label>Select Template</label>
+                <select id="templateSelect">
+                    <option value="">-- Select Template --</option>
+                </select>
+            </div>
+            <div id="templatePreview" class="form-group" style="display: none;">
+                <label>Preview</label>
+                <div id="previewText" style="background:#0f0f1a; padding:10px; border-radius:8px; max-height:200px; overflow-y:auto; font-size:12px; color:#a0a0c0;"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="applyTemplate()">Apply to Proposal</button>
+                <button class="btn-secondary" onclick="closeModal('loadTemplateModal')">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -347,6 +434,7 @@
         let token = localStorage.getItem('token');
         let contacts = [];
         let proposals = [];
+        let templates = [];
         
         if (!token) window.location.href = 'index.html';
 
@@ -363,8 +451,9 @@
         }
 
         async function loadData() {
-            await loadProposals();
             contacts = await apiCall('/api/contacts');
+            templates = await apiCall('/api/templates');
+            await loadProposals();
         }
 
         async function loadProposals() {
@@ -398,7 +487,7 @@
                         <button class="btn-secondary" style="padding:6px 12px; margin-right:5px;" onclick="openStatusModal(${p.id})">📝 Status</button>
                         <button class="btn-secondary" style="padding:6px 12px; background:#ef4444; border-color:#ef4444;" onclick="deleteProposal(${p.id})">🗑️ Delete</button>
                     </span></td>
-            </tr>`).join('');
+            </td>`).join('');
         }
 
         function getStatusText(s) { return { draft:'📝 Draft', sent:'📤 Sent', viewed:'👁️ Viewed', accepted:'✅ Accepted', rejected:'❌ Rejected' }[s] || s; }
@@ -408,18 +497,61 @@
             const accepted = proposals.filter(p => p.status === 'accepted').length;
             const pending = proposals.filter(p => p.status === 'sent' || p.status === 'viewed').length;
             const totalValue = proposals.reduce((s,p) => s + (p.status === 'accepted' ? (p.amount || 0) : 0), 0);
-            document.getElementById('statsGrid').innerHTML = `<div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total</div></div><div class="stat-card"><div class="stat-number">${accepted}</div><div class="stat-label">Accepted</div></div><div class="stat-card"><div class="stat-number">${pending}</div><div class="stat-label">Pending</div></div><div class="stat-card"><div class="stat-number">GHS ${totalValue.toLocaleString()}</div><div class="stat-label">Value</div></div>`;
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total Proposals</div></div>
+                <div class="stat-card"><div class="stat-number">${accepted}</div><div class="stat-label">Accepted</div></div>
+                <div class="stat-card"><div class="stat-number">${pending}</div><div class="stat-label">Pending</div></div>
+                <div class="stat-card"><div class="stat-number">GHS ${totalValue.toLocaleString()}</div><div class="stat-label">Total Value</div></div>
+            `;
         }
 
         function openAddProposalModal() {
-            const select = document.getElementById('proposalContactId');
-            select.innerHTML = '<option value="">-- Select Contact --</option>' + contacts.map(c => `<option value="${c.id}">${escapeHtml(c.name)}${c.company ? ' - ' + c.company : ''}</option>`).join('');
+            document.getElementById('proposalModalTitle').innerText = 'New Proposal';
             document.getElementById('proposalId').value = '';
             document.getElementById('proposalTitle').value = '';
             document.getElementById('proposalDescription').value = '';
             document.getElementById('proposalAmount').value = '';
             document.getElementById('proposalStatus').value = 'draft';
+            
+            const select = document.getElementById('proposalContactId');
+            select.innerHTML = '<option value="">-- Select Contact --</option>' + contacts.map(c => `<option value="${c.id}">${escapeHtml(c.name)}${c.company ? ' - ' + c.company : ''}</option>`).join('');
             document.getElementById('proposalModal').style.display = 'flex';
+        }
+
+        function loadTemplateIntoProposal() {
+            const templateSelect = document.getElementById('templateSelect');
+            templateSelect.innerHTML = '<option value="">-- Select Template --</option>' + templates.map(t => `<option value="${t.id}">[${t.category}] ${escapeHtml(t.title)}</option>`).join('');
+            document.getElementById('templatePreview').style.display = 'none';
+            document.getElementById('loadTemplateModal').style.display = 'flex';
+            
+            // Add change event to show preview
+            templateSelect.onchange = function() {
+                const templateId = this.value;
+                if (templateId) {
+                    const template = templates.find(t => t.id == templateId);
+                    if (template) {
+                        document.getElementById('previewText').innerHTML = escapeHtml(template.content.substring(0, 300)) + (template.content.length > 300 ? '...' : '');
+                        document.getElementById('templatePreview').style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('templatePreview').style.display = 'none';
+                }
+            };
+        }
+
+        function applyTemplate() {
+            const templateId = document.getElementById('templateSelect').value;
+            if (!templateId) {
+                showToast('Please select a template', 'error');
+                return;
+            }
+            const template = templates.find(t => t.id == templateId);
+            if (template) {
+                document.getElementById('proposalDescription').value = template.content;
+                document.getElementById('proposalTitle').value = template.title;
+                showToast('Template applied! You can now edit the content.', 'success');
+                closeModal('loadTemplateModal');
+            }
         }
 
         async function saveProposal() {
